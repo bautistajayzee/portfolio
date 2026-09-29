@@ -1,7 +1,6 @@
 <script setup>
 import SectionHead from '../ui/SectionHead.vue'
 import Rule from '../ui/Rule.vue'
-import ProfileImage from '../ui/ProfileImage.vue'
 import LetterComposer from '../ui/LetterComposer.vue'
 import { contact, sections, social } from '../../data/portfolio.js'
 
@@ -113,16 +112,25 @@ const channels = social.filter((item) => item.href.startsWith('http'))
         </div>
 
         <!--
-          The portrait is pinned to the right edge of the same grid, so its
-          right-hand edge lines up with the end of every rule and row above it.
-          Below `lg` it drops onto the axis and left-aligns instead of floating
-          in the middle of the column.
+          No portrait here.
+
+          It was pinned to the right edge of this grid, columns 10 to 13, and it
+          was the second thing competing with the one line that matters on this
+          section. Contact asks for one action — send something — and the email
+          address is already the largest type on the page after the heading.
+
+          The same photograph opens the site in Home, so repeating it eight
+          sections later bought no new information while taking the eye off the
+          ask. Removing it also leaves columns 10 to 13 empty at `lg`, which is
+          what the rest of the section is composed against: the headline block
+          ends at column 9 and the composer at column 11, and neither was ever
+          sized against the portrait.
+
+          Every remaining child declares its own `col-start` and `col-end`, so
+          this leaves no item relying on auto-flow — which matters here, because
+          this grid already had one child silently dropped into the empty first
+          column when it did not.
         -->
-        <div class="flex md:col-start-3 md:col-end-7 lg:col-start-10 lg:col-end-13 lg:justify-end">
-          <div v-reveal="200" class="w-full max-w-[11rem] sm:max-w-[13rem]">
-            <ProfileImage size="100%" />
-          </div>
-        </div>
 
         <!--
           The composer, on its own row below the grid rather than tucked into
