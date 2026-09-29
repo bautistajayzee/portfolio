@@ -62,6 +62,7 @@ const streaming = ref(false)
 const streamingId = ref(null)
 
 const logEl = ref(null)
+const panelEl = ref(null)
 const chipRow = ref(null)
 const launcherEl = ref(null)
 const firstChipEl = ref(null)
@@ -364,11 +365,81 @@ function onKeydown(event) {
 }
 
 /**
- * Bound by hand rather than as `@wheel`, for two reasons: the handler must be
- * able to call `preventDefault`, so the listener cannot be passive; and the row
- * does not exist until the panel opens, so the binding has to follow the open
- * state rather than the component's lifetime.
+ * Keeps the wheel inside the panel while the cursor is over it.
+ *
+ * `overscroll-contain` on the log already handles the log, but only the log. The
+ * header and the question row are not scroll containers, so a wheel there fell
+ * straight through to the document and the whole page slid out from under the
+ * cursor — the panel would sit still while the site moved behind it, which reads
+ * as the chat being broken rather than as a scroll region.
+ *
+ * So the rule is stated at the panel, where the region actually is:
+ *
+ * · the cursor is over the log  →  the log scrolls, natively
+ * · the log is spent, or the cursor is anywhere else in the panel  →  refused
+ *
+ * Swallowing rather than chaining is the point. Handing a spent gesture back to
+ * the document would give the page the movement that was just refused here, so
+ * there would be no way to tell the two apart. The trade-off is deliberate: when
+ * there is nothing left to scroll, the wheel does nothing at all under the
+ * cursor, and the page is scrolled by moving the pointer off the panel.
  */
+function onPanelWheel(event) {
+  // Pinch-to-zoom is a ctrl-modified wheel and is never ours to consume.
+  if (event.ctrlKey) return
+  // The question row already used this gesture for its own horizontal scroll.
+  if (event.defaultPrevented) return
+
+  const log = logEl.value
+  const target = event.target
+
+  if (log && target instanceof Node && (target === log || log.contains(target))) {
+    const max = log.scrollHeight - log.clientHeight
+    const canScroll =
+      max > 1 && (event.deltaY > 0 ? log.scrollTop < max - 1 : log.scrollTop > 0)
+
+    // The log is the scroll container under the cursor, so let it take the
+    // gesture natively. Once it is spent the gesture has to be refused rather
+    // than handed on, or the document inherits the movement that was refused
+    // here.
+    if (canScroll) return
+    event.preventDefault()
+    return
+  }
+
+  /*
+    Everywhere else in the panel — the header, the question row, the padding —
+    there is no scroll container under the cursor at all, so the browser's
+    default action for a wheel is to move the document.
+
+    That first version of this guard asked whether the log had room rather than
+    where the event landed, so hovering the header let the page slide whenever
+    the conversation happened to be long enough to scroll. Asking about the
+    target instead is what actually closes it: the header is not inside the log,
+    so there is nothing here to scroll, and the page does not move.
+  */
+  event.preventDefault()
+}
+
+/**
+ * Bound by hand rather than as `@wheel`, for two reasons: the handlers must be
+ * able to call `preventDefault`, so the listeners cannot be passive; and neither
+ * the row nor the panel exists until the panel opens, so the binding has to
+ * follow the open state rather than the component's lifetime.
+ */
+function bindPanelWheel() {
+  const panel = panelEl.value
+  if (!panel) return
+  panel.removeEventListener('wheel', onPanelWheel)
+  panel.addEventListener('wheel', onPanelWheel, { passive: false })
+  bindChipWheel()
+}
+
+function unbindPanelWheel() {
+  panelEl.value?.removeEventListener('wheel', onPanelWheel)
+  unbindChipWheel()
+}
+
 function bindChipWheel() {
   const el = chipRow.value
   if (!el) return
@@ -387,14 +458,14 @@ watch(open, async (isOpen) => {
   // Land on the first question so a keyboard visitor can ask straight away.
   await nextTick()
   firstChipEl.value?.focus()
-  bindChipWheel()
+  bindPanelWheel()
 })
 
 onBeforeUnmount(() => {
   pending.forEach(window.clearTimeout)
   // The reveal loop outlives the component unless it is explicitly cancelled.
   window.cancelAnimationFrame(streamRaf)
-  unbindChipWheel()
+  unbindPanelWheel()
   chipRow.value?.classList.remove('chips-scroll--dragging')
   chipDrag = null
   document.removeEventListener('keydown', onKeydown)
@@ -419,6 +490,7 @@ onBeforeUnmount(() => {
     <Transition name="chat-panel">
       <div
         v-if="open"
+        ref="panelEl"
         role="dialog"
         aria-label="Ask about Jayzee"
         class="chat-panel pointer-events-auto mb-3 flex w-[min(21rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[12px] border border-line bg-paper shadow-[0_18px_44px_-26px_rgba(10,10,10,0.4)]"
