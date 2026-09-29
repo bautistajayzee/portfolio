@@ -26,12 +26,19 @@
 #
 #   1. npm run build
 #   2. Read dist/index.html, take the single inline <script> body
-#   3. sha256 its exact UTF-8 bytes
+#   3. sha256 its exact UTF-8 bytes, then BASE64 the digest
 #      PowerShell:
 #        $h=[System.IO.File]::ReadAllText('dist/index.html')
 #        $b=[regex]::Match($h,'(?s)<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>').Groups[1].Value
-#        -join([System.Security.Cryptography.SHA256]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes($b))|%{$_.ToString('x2')})
-#   4. paste it into script-src below
+#        [Convert]::ToBase64String([System.Security.Cryptography.SHA256]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes($b)))
+#   4. paste it into script-src below, keeping the `sha256-` prefix
+#
+# **Base64, not hex.** A Content-Security-Policy hash is `sha256-<base64>`. Hex
+# is accepted nowhere in the spec, and a hex value fails *silently and visibly at
+# once*: every check that compares hex to hex still passes, so the value looks
+# verified right up until the browser blocks the script in production. That is
+# exactly what happened — the shipped policy carried a hex digest, the page threw
+# a CSP error on every load, and the before-paint theme script never ran.
 #
 # **If you edit the inline theme script in index.html, recompute this.** A stale
 # hash does not break the site — it stops that one script, which is the
@@ -56,7 +63,7 @@
       object-src 'none'; \
       frame-ancestors 'none'; \
       form-action 'self'; \
-      script-src 'self' 'sha256-2efc9d4e83b858dd20a67f1c90a7414840055870e72f3673cc8681072bef17ce'; \
+      script-src 'self' 'sha256-LvydToO4WN0gpn8ckKdBSEAFWHDnLzZzzIaBByvvF84='; \
       style-src 'self' 'unsafe-inline'; \
       font-src 'self'; \
       img-src 'self' data:; \
