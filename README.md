@@ -139,13 +139,25 @@ deepened light value, which is the same hue family taken down far enough to
 clear 6:1.
 
 Type is Instrument Sans (display and body), Instrument Serif italic (the
-masthead's second line only), and IBM Plex Mono for `.meta`.
+masthead's second line only), and IBM Plex Mono for `.meta`. The Google Fonts
+request is trimmed to what is actually set — the sans italic axis and the mono
+500 were both downloaded and never used.
+
+The quiet end of the grey ramp is deliberately compressed. `n-300` and `n-400`
+used to sit at 1.48:1 and 2.48:1 on white — real WCAG AA failures across 145
+elements. Because `n-300` is the lighter of the two and the paper is white, a
+lighter colour always scores worse, so the lightness gap had to go rather than
+the legibility. They are now 4.63:1 and 4.76:1 in light, 4.95:1 and 4.75:1 in
+dark. Hierarchy in that region comes from size, weight and the accent, never
+from contrast alone.
 
 ---
 
 ## Deploy
 
-Static. `netlify.toml` declares the build and the function directory.
+Static. `netlify.toml` declares the build, the function directory, and the
+security headers — including a CSP whose script hash is computed from the built
+output, with the recompute command written next to it.
 
 **The presence function only deploys through the CLI or a linked Git repo.**
 Dragging `dist/` into the browser drops `netlify/functions/`, the badge quietly
@@ -159,7 +171,7 @@ netlify deploy --prod
 The function keeps a presence map in Netlify Blobs as one JSON object, pruned on
 every heartbeat past a 90s TTL, so it cannot accumulate litter and does not
 depend on a clean disconnect. It stores a random per-tab id and a timestamp.
-Nothing identifying. Requires no third-party account.
+Nothing identifying. Requires no third-party account. See `SECURITY.md`.
 
 ---
 
@@ -167,15 +179,13 @@ Nothing identifying. Requires no third-party account.
 
 Honest list, not a to-do list.
 
-- **The grey ramp fails WCAG AA on small metadata.** `.meta` is 11px and sits on
-  `n-400`, which is 2.48:1 on the light page and 4.18:1 on the dark one. 112
-  elements use it. `n-300` — the *inactive* section numbers — is 1.48:1. This is
-  a deliberate "quiet metadata" language, but it is a real failure and cannot be
-  fixed without making the page busier. Raising the low end of the ramp is the
-  only lever.
 - **The contact composer does not deliver mail**, by design. See above.
 - **Three of six projects have no screenshot**, so their rows are bare Figma
-  links with no preview.
-- **`SCHOOL_INVENTORY.jpg`** sits unreferenced at the repo root. Not shipped —
-  it is outside `public/` — but it is dead weight in the repository.
-- **The resume PDF says "studentager".** A typo in the source document.
+  links. Exporting PNGs to `public/` is the only thing that changes this.
+- **The resume PDF says "studentager".** A typo inside a binary PDF; it needs
+  editing in the source document.
+- **Project screenshots are 1919px wide** for a lightbox capped near 1400. They
+  are only fetched when opened, so it costs nothing on load, but they are
+  oversized for what is drawn.
+- **`og:image` is omitted.** There is no share image; pointing at a path that
+  does not resolve gives a broken thumbnail, which is worse than none.

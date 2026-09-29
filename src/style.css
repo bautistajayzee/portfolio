@@ -22,9 +22,24 @@
   --c-n-50: #faf9f7;
   --c-n-100: #f4f2ef;
   --c-n-200: #e9e6e1;
-  --c-n-300: #d8d4cd;
-  --c-n-400: #a9a49b;
-  --c-n-500: #7d7871;
+  /*
+     `n-300` and `n-400` are closer together than any other pair on this ramp,
+     and that is not an accident — it is the cost of them both being legible.
+
+     They used to sit at #d8d4cd (1.48:1) and #a9a49b (2.48:1). Since `n-300` is
+     the *lighter* of the two and the paper is white, a lighter colour always
+     scores worse here: you cannot keep a full step of lightness between them
+     and have both clear 4.5:1. Something had to give, and it was the gap, not
+     the legibility. 4.63:1 and 4.76:1 against white.
+
+     The quiet end of the page still reads as quiet. Hierarchy here comes from
+     size, weight and the accent — an inactive section number is a dimmer,
+     tabular mono glyph, and the active one is the accent colour. Colour
+     contrast was never the only signal, and now it is not carrying that job.
+  */
+  --c-n-300: #7a746b;
+  --c-n-400: #787269;
+  --c-n-500: #6f6a63;
   --c-n-600: #5c5852;
   --c-n-700: #45423d;
   --c-n-800: #2c2a27;
@@ -50,8 +65,9 @@ html.dark {
   --c-n-50: #131316;
   --c-n-100: #1a1b1f;
   --c-n-200: #24262a;
-  --c-n-300: #33363b;
-  --c-n-400: #6f747b;
+  /* Same story as the light ramp: see the note above. 4.95:1 and 4.75:1. */
+  --c-n-300: #7b8088;
+  --c-n-400: #787d85;
   --c-n-500: #92979e;
   --c-n-600: #b3b8bf;
   --c-n-700: #ccd0d6;

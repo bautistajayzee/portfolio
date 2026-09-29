@@ -27,9 +27,6 @@ dist-ssr
 .vercel
 .firebase
 
-# Unrelated to the site and referenced nowhere in src/. Left on disk, kept out
-# of the repository. Delete it whenever you decide it is not wanted.
-SCHOOL_INVENTORY.jpg
 
 # Editor directories and files
 .vscode/*
