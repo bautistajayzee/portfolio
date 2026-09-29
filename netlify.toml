@@ -9,6 +9,13 @@
   publish = "dist"
   functions = "netlify/functions"
 
+# Pinned because Vite 8 declares `engines.node: ^20.19.0 || >=22.12.0`. Without
+# this the build runs on whatever Node Netlify defaults to that month, and the
+# failure looks like a broken project rather than a runtime mismatch. "22" means
+# the newest 22.x, so it stays above 22.12 while still taking security patches.
+[build.environment]
+  NODE_VERSION = "22"
+
 # ===========================================================================
 # Security headers
 #
