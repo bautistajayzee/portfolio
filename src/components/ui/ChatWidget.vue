@@ -410,21 +410,38 @@ onBeforeUnmount(() => {
             <!--
               Question chips — this replaces a text input entirely.
 
-              Stacked one per row rather than wrapped side by side. A wrapped row
-              of pills breaks into ragged lines at every panel width, and the eye
-              reads the gaps as a grid rather than as a list of choices. Full-width
-              rows also give every question the same hit target, which is the point
-              of a control standing in for typing.
+              A single horizontal row that swipes, not a vertical stack. Seven
+              full-width rows made the panel 300px taller than the conversation
+              in it, which is the wrong balance: the chips are a launcher, not
+              the content, and they were pushing the actual messages off screen.
+
+              Three details that make a horizontal scroller feel intentional
+              rather than broken:
+
+              · The scroll area stays inside the panel's padding. It originally
+                bled with `-mx-4 px-4` so a chip could slide under the rounded
+                corner — except the panel is `overflow-hidden` for those corners,
+                so 15px of the first chip was clipped off and hit-testing over it
+                returned the panel. The bleed bought a peek and cost a chip.
+              · The scrollbar is hidden. A visible 8px bar under a row of bordered
+                chips looks like a bug, and on a touch device it is a scroll
+                target nobody aims for.
+              · `overscroll-behavior-x: contain` stops a horizontal flick from
+                being handed to the message log above it.
+
+              Keyboard users are not stranded: the chips are buttons, so arrowing
+              along them scrolls them into view, and the first one still receives
+              focus when the panel opens.
             -->
-            <div class="border-t border-line px-4 py-3.5">
-              <p class="meta mb-2.5 text-n-400">Ask me</p>
-              <div class="flex flex-col gap-1.5">
+            <div class="border-t border-line pb-3.5 pt-3.5">
+              <p class="meta mb-2.5 px-4 text-n-400">Ask me</p>
+              <div class="chips-scroll flex gap-2 overflow-x-auto px-4">
                 <button
                   v-for="(question, i) in chat"
                   :key="question.id"
                   :ref="i === 0 ? (el) => (firstChipEl = el) : undefined"
                   type="button"
-                  class="group flex w-full items-center justify-between gap-3 border border-line px-3 py-2.5 text-left text-[0.8125rem] leading-tight text-n-600 transition-colors hover:border-n-400 hover:text-ink disabled:opacity-40"
+                  class="group flex shrink-0 items-center gap-2 whitespace-nowrap border border-line px-3 py-2.5 text-left text-[0.8125rem] leading-tight text-n-600 transition-colors hover:border-n-400 hover:text-ink disabled:opacity-40"
                   :disabled="typing || streaming"
                   @click="ask(question)"
                 >
@@ -498,6 +515,40 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+/*
+  The question row.
+
+  Firefox and the standards track both take `scrollbar-width: none`; the
+  WebKit/Blink pseudo-element covers the rest. Without both, a visible bar sits
+  directly under a row of bordered chips.
+*/
+.chips-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* A horizontal flick must not be handed to the message log above it. */
+  overscroll-behavior-x: contain;
+  /* Room for the chip focus ring, which would otherwise be clipped. */
+  padding-block: 2px;
+}
+
+.chips-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+  Snap each chip to the leading edge, so a flick lands cleanly on a chip rather
+  than between two. `proximity` rather than `mandatory` because a chip wider
+  than the panel must still be reachable.
+*/
+.chips-scroll > * {
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+}
+
+.chips-scroll {
+  scroll-snap-type: x proximity;
+}
+
 /*
   Pinned so the panel grows out of the launcher button in the corner below it,
   rather than scaling from its own centre.
