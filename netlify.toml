@@ -105,3 +105,34 @@
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# ===========================================================================
+# PDF framing
+#
+# The resume opens in the lightbox over an iframe, and the `/*` block above
+# refuses framing on every response — so the deployed resume rendered as an
+# empty box. `vite preview` sends no security headers at all, which is why this
+# only ever appeared once deployed: the file was always a healthy 200
+# `application/pdf`, just framed by a response that forbade being framed.
+#
+# Relaxed for PDFs only, and only back to same-origin: `frame-ancestors 'self'`
+# alongside `X-Frame-Options: SAMEORIGIN`, which is the standard pairing for
+# "my own site may put this in an iframe". A third-party site still cannot, and
+# there is nothing worth clickjacking in a static document — the protection that
+# matters is on the interactive pages, and it is untouched.
+#
+# Matched on the extension rather than the literal path on purpose. The file is
+# named `Bautista, Jayzee G. (RESUME).pdf`, and that name carries a space, a
+# comma and a pair of parentheses — a `for` pattern naming it directly would
+# have to match the percent-encoded request path and would rot on any rename.
+# `*.pdf` is unaffected by all of that.
+#
+# The policy here is deliberately short rather than a copy of the global one: a
+# PDF has no scripts, no styles and no subresources to protect, so there is
+# nothing to allow, and the only thing that actually governs it is who may frame
+# it.
+[[headers]]
+  for = "/*.pdf"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    Content-Security-Policy = "frame-ancestors 'self'; base-uri 'none'; object-src 'none'"
