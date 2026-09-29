@@ -62,9 +62,92 @@ const streaming = ref(false)
 const streamingId = ref(null)
 
 const logEl = ref(null)
+const chipRow = ref(null)
 const launcherEl = ref(null)
 const firstChipEl = ref(null)
 const minimiseEl = ref(null)
+
+/* --- drag to scroll the question row ----------------------------------
+ *
+ * A horizontal strip is close to unusable with a plain mouse wheel, which only
+ * emits vertical deltas. Browsers translate that into horizontal scrolling
+ * inconsistently — Firefox and Safari want Shift held, and a trackpad is
+ * required to emit `deltaX` at all. So on a desktop the row simply looked
+ * stuck.
+ *
+ * Dragging it with the pointer is the fix. Touch and pen already swipe natively,
+ * so the handler declines anything that is not a mouse — otherwise this fights
+ * the platform gesture rather than replacing it.
+ *
+ * `suppressClick` is the part that is easy to forget: a drag that ends over a
+ * chip fires that chip on release, so a visitor trying to scroll the row would
+ * ask a question they did not mean to ask. The flag lives for exactly one
+ * gesture — set on pointer-up, consumed by the click that follows, cleared on
+ * the next pointer-down.
+ */
+let chipDrag = null
+let suppressClick = false
+
+function onChipPointerDown(event) {
+  suppressClick = false
+  if (event.pointerType !== 'mouse') return
+
+  const el = chipRow.value
+  if (!el) return
+
+  chipDrag = { id: event.pointerId, startX: event.clientX, startScroll: el.scrollLeft, moved: 0 }
+  // Capture is a nicety — it keeps the drag alive if the pointer leaves the row.
+  // A throw here must not abort the handler and leave a drag half-armed.
+  try {
+    el.setPointerCapture?.(event.pointerId)
+  } catch {
+    /* no active pointer with that id — carry on without capture */
+  }
+}
+
+function onChipPointerMove(event) {
+  if (!chipDrag || event.pointerId !== chipDrag.id) return
+  const el = chipRow.value
+  if (!el) return
+
+  const dx = event.clientX - chipDrag.startX
+  chipDrag.moved = Math.max(chipDrag.moved, Math.abs(dx))
+  // A couple of pixels of jitter is a click, not a drag. Only commit past that,
+  // so a plain click on a chip never leaves the row looking grabbed.
+  if (chipDrag.moved < 3) return
+
+  event.preventDefault()
+  el.scrollLeft = chipDrag.startScroll - dx
+  el.classList.add('chips-scroll--dragging')
+}
+
+function onChipPointerUp(event) {
+  if (!chipDrag || event.pointerId !== chipDrag.id) return
+
+  if (chipDrag.moved > 4) suppressClick = true
+
+  // Cleared *before* the capture release below. It used to run last, and
+  // `releasePointerCapture` throws if the pointer is already gone — which left
+  // `chipDrag` set and `suppressClick` leaking into the next genuine click,
+  // quietly eating it.
+  chipDrag = null
+
+  const el = chipRow.value
+  el?.classList.remove('chips-scroll--dragging')
+  try {
+    el?.releasePointerCapture?.(event.pointerId)
+  } catch {
+    /* already released */
+  }
+}
+
+/** Capture phase, so it runs before the chip's own click handler. */
+function onChipRowClick(event) {
+  if (!suppressClick) return
+  suppressClick = false
+  event.preventDefault()
+  event.stopPropagation()
+}
 
 /** Keep the log from growing without bound if someone taps every chip. */
 const MAX_MESSAGES = 12
@@ -252,6 +335,8 @@ onBeforeUnmount(() => {
   pending.forEach(window.clearTimeout)
   // The reveal loop outlives the component unless it is explicitly cancelled.
   window.cancelAnimationFrame(streamRaf)
+  chipRow.value?.classList.remove('chips-scroll--dragging')
+  chipDrag = null
   document.removeEventListener('keydown', onKeydown)
 })
 </script>
@@ -435,7 +520,15 @@ onBeforeUnmount(() => {
             -->
             <div class="border-t border-line pb-3.5 pt-3.5">
               <p class="meta mb-2.5 px-4 text-n-400">Ask me</p>
-              <div class="chips-scroll flex gap-2 overflow-x-auto px-4">
+              <div
+                ref="chipRow"
+                class="chips-scroll flex gap-2 overflow-x-auto px-4"
+                @pointerdown="onChipPointerDown"
+                @pointermove="onChipPointerMove"
+                @pointerup="onChipPointerUp"
+                @pointercancel="onChipPointerUp"
+                @click.capture="onChipRowClick"
+              >
                 <button
                   v-for="(question, i) in chat"
                   :key="question.id"
@@ -529,6 +622,18 @@ onBeforeUnmount(() => {
   overscroll-behavior-x: contain;
   /* Room for the chip focus ring, which would otherwise be clipped. */
   padding-block: 2px;
+  /*
+     `grab` is the affordance. Without it the row gives no hint that it moves at
+     all, and a visitor with a mouse has no other way of finding out short of
+     trying. It does not affect touch, which keeps the native swipe.
+  */
+  cursor: grab;
+}
+
+.chips-scroll--dragging {
+  cursor: grabbing;
+  /* Stop the drag selecting every chip label it passes over. */
+  user-select: none;
 }
 
 .chips-scroll::-webkit-scrollbar {
