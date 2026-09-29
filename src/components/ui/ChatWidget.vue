@@ -149,6 +149,47 @@ function onChipRowClick(event) {
   event.stopPropagation()
 }
 
+/**
+ * The mouse wheel, mapped onto the row's horizontal axis while the cursor is
+ * over it.
+ *
+ * A wheel only reports `deltaY`, so a horizontal strip is unreachable with one
+ * unless something translates it. `deltaMode` is normalised because some
+ * platforms report lines rather than pixels, which would otherwise make the
+ * row crawl.
+ *
+ * The part that matters is what happens at the ends. The gesture is only
+ * consumed while the row can still move that way; once it is pinned to a limit
+ * the wheel is handed straight back to the page. Without that, hovering the
+ * chips would trap the reader — the page would not scroll, and the row would not
+ * move either, so the only way past it was to move the mouse somewhere else.
+ * That is the failure mode this handler exists to avoid.
+ */
+function onChipWheel(event) {
+  const el = chipRow.value
+  if (!el) return
+
+  // Pinch-to-zoom arrives as a ctrl-modified wheel. Never touch it.
+  if (event.ctrlKey) return
+  // Shift+wheel already scrolls a horizontal container natively. Handling it
+  // here as well would scroll it twice as fast as the gesture asks for.
+  if (event.shiftKey) return
+
+  const max = el.scrollWidth - el.clientWidth
+  if (max <= 0) return
+
+  const dy = event.deltaY * (event.deltaMode === 1 ? 16 : 1)
+  // Already horizontal — a trackpad swipe or a sideways wheel. Leave it be.
+  if (Math.abs(dy) <= Math.abs(event.deltaX)) return
+
+  const atStart = el.scrollLeft <= 0
+  const atEnd = el.scrollLeft >= max - 1
+  if ((dy < 0 && atStart) || (dy > 0 && atEnd)) return
+
+  event.preventDefault()
+  el.scrollLeft += dy
+}
+
 /** Keep the log from growing without bound if someone taps every chip. */
 const MAX_MESSAGES = 12
 
@@ -322,6 +363,23 @@ function onKeydown(event) {
   }
 }
 
+/**
+ * Bound by hand rather than as `@wheel`, for two reasons: the handler must be
+ * able to call `preventDefault`, so the listener cannot be passive; and the row
+ * does not exist until the panel opens, so the binding has to follow the open
+ * state rather than the component's lifetime.
+ */
+function bindChipWheel() {
+  const el = chipRow.value
+  if (!el) return
+  el.removeEventListener('wheel', onChipWheel)
+  el.addEventListener('wheel', onChipWheel, { passive: false })
+}
+
+function unbindChipWheel() {
+  chipRow.value?.removeEventListener('wheel', onChipWheel)
+}
+
 document.addEventListener('keydown', onKeydown)
 
 watch(open, async (isOpen) => {
@@ -329,12 +387,14 @@ watch(open, async (isOpen) => {
   // Land on the first question so a keyboard visitor can ask straight away.
   await nextTick()
   firstChipEl.value?.focus()
+  bindChipWheel()
 })
 
 onBeforeUnmount(() => {
   pending.forEach(window.clearTimeout)
   // The reveal loop outlives the component unless it is explicitly cancelled.
   window.cancelAnimationFrame(streamRaf)
+  unbindChipWheel()
   chipRow.value?.classList.remove('chips-scroll--dragging')
   chipDrag = null
   document.removeEventListener('keydown', onKeydown)
@@ -514,9 +574,12 @@ onBeforeUnmount(() => {
               · `overscroll-behavior-x: contain` stops a horizontal flick from
                 being handed to the message log above it.
 
-              Keyboard users are not stranded: the chips are buttons, so arrowing
-              along them scrolls them into view, and the first one still receives
-              focus when the panel opens.
+              Two ways in, because neither one covers the other. The wheel is
+              translated onto the horizontal axis while the cursor is over the
+              row, and the row also drags with the pointer. Keyboard users are not
+              stranded either: the chips are buttons, so arrowing along them
+              scrolls them into view, and the first one receives focus when the
+              panel opens.
             -->
             <div class="border-t border-line pb-3.5 pt-3.5">
               <p class="meta mb-2.5 px-4 text-n-400">Ask me</p>
@@ -628,6 +691,20 @@ onBeforeUnmount(() => {
      trying. It does not affect touch, which keeps the native swipe.
   */
   cursor: grab;
+
+  /*
+     Must match `px-4`, and it is not cosmetic.
+
+     Snap positions and focus scrolling are both measured from the scrollport's
+     start edge, while the chips sit 16px in from it. Without this the browser
+     resolved the first chip's start-aligned snap to `scrollLeft: 16`, so the row
+     rested with the first chip flush against the panel border and no left inset
+     — and any focus landing in the row yanked it 16px out of alignment.
+
+     Pairing the two insets keeps `scrollLeft: 0` the natural start, and lets the
+     last chip stop with the same 16px on its right as the first has on its left.
+  */
+  scroll-padding-inline: 1rem;
 }
 
 .chips-scroll--dragging {
@@ -641,18 +718,22 @@ onBeforeUnmount(() => {
 }
 
 /*
-  Snap each chip to the leading edge, so a flick lands cleanly on a chip rather
-  than between two. `proximity` rather than `mandatory` because a chip wider
-  than the panel must still be reachable.
-*/
-.chips-scroll > * {
-  scroll-snap-align: start;
-  scroll-snap-stop: normal;
-}
+  No scroll snapping on this row, which was a deliberate call after measuring it.
 
-.chips-scroll {
-  scroll-snap-type: x proximity;
-}
+  Snapping was here so a touch flick would land cleanly on a chip. The measured
+  snap positions are 1 / 138 / 245 / 365 / 488 / 613 / 739 — 110 to 138px apart —
+  so proximity snap re-pulled any scroll that finished more than half a chip
+  away from the nearest snap line. The consequences were not cosmetic:
+
+  · a Firefox wheel notch is 53px, which is inside that dead zone, so the very
+    first notch did nothing at all and the row looked broken
+  · line-mode deltas did nothing
+  · any slow trackpad drag moved a few pixels and sprang back
+
+  The wheel is the primary input on a desktop, so it gets a 1:1 mapping and free
+  positioning. Touch still decelerates natively, and the row is only 42px tall,
+  so a flick landing between chips costs nothing.
+*/
 
 /*
   Pinned so the panel grows out of the launcher button in the corner below it,
