@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      `viewport-fit=cover` lets the page run edge to edge under the notch and
+      the home indicator, which is what makes `env(safe-area-inset-*)` non-zero
+      in the nav chrome. Without it those resolve to 0 and the page is inset by
+      the OS instead — also fine, but then the chrome cannot choose its own
+      padding and a notched phone gets a visibly cramped top bar.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Jayzee G. Bautista — IT, Design &amp; Problem-Solving</title>
+    <meta
+      name="description"
+      content="Jayzee G. Bautista — an IT student and aspiring IT professional working across programming, graphic design, and problem-solving. Based in Cavite, Philippines."
+    />
+    <meta name="author" content="Jayzee G. Bautista" />
+
+    <!--
+      Both themes, not just the light one. A single hardcoded value left the
+      browser's own chrome — the address bar on mobile, the title bar on some
+      desktops — white against a dark page for anyone who chose dark.
+    -->
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b0b0d" media="(prefers-color-scheme: dark)" />
+
+    <meta property="og:type" content="profile" />
+    <meta property="og:title" content="Jayzee G. Bautista" />
+    <meta
+      property="og:description"
+      content="IT, graphic design, and problem-solving. An aspiring IT professional based in Cavite, Philippines."
+    />
+    <!--
+      No `og:image` on purpose. There is no share image in the repository, and
+      pointing at a path that does not resolve produces a worse result in every
+      chat and social preview than omitting it: a broken thumbnail. Add one and
+      this line becomes worth writing.
+    -->
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!--
+      Applied before first paint so a dark-theme visitor never sees a white
+      flash. Kept inline and tiny on purpose — it has to run before the
+      stylesheet and the app bundle do.
+    -->
+    <script>
+      (function () {
+        try {
+          var pref = localStorage.getItem('theme') || 'system'
+          var dark =
+            pref === 'dark' ||
+            (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          document.documentElement.classList.toggle('dark', dark)
+        } catch (e) {
+          /* private mode or blocked storage — fall back to the light default */
+        }
+      })()
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

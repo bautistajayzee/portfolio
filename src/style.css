@@ -1,0 +1,484 @@
+@import 'tailwindcss';
+
+/* ==========================================================================
+   COLOUR
+   The raw values live here, and `html.dark` re-declares every one of them.
+   Tailwind's tokens point at these with var(), so `bg-paper`, `text-n-500`
+   and friends resolve differently per theme without a single component
+   knowing which theme is active.
+
+   The neutral ramp is *inverted* in dark mode: n-50 becomes the darkest
+   surface and n-950 the lightest. That is deliberate — it means every class
+   already in the codebase keeps its meaning. `text-n-400` is still "a
+   subdued grey", it just happens to sit on a dark page now.
+   ========================================================================== */
+:root {
+  color-scheme: light;
+
+  --c-paper: #ffffff;
+  --c-ink: #0a0a0a;
+  --c-line: #e9e6e1;
+
+  --c-n-50: #faf9f7;
+  --c-n-100: #f4f2ef;
+  --c-n-200: #e9e6e1;
+  --c-n-300: #d8d4cd;
+  --c-n-400: #a9a49b;
+  --c-n-500: #7d7871;
+  --c-n-600: #5c5852;
+  --c-n-700: #45423d;
+  --c-n-800: #2c2a27;
+  --c-n-900: #171614;
+  --c-n-950: #0a0a0a;
+
+  /* the one accent — seafoam
+     Deepened for this theme. The brand colour #93E9BE is a light seafoam and
+     scores 1.43:1 against this white paper, which is not text, it is a hole.
+     This is the same hue family (159° against 150°) taken down until it clears
+     6.25:1, because the accent carries real text: the section numbers in the
+     rail and the `<dt>` labels in Experience. */
+  --c-accent: #116e4d;
+}
+
+html.dark {
+  color-scheme: dark;
+
+  --c-paper: #0b0b0d;
+  --c-ink: #f2f3f5;
+  --c-line: #26282d;
+
+  --c-n-50: #131316;
+  --c-n-100: #1a1b1f;
+  --c-n-200: #24262a;
+  --c-n-300: #33363b;
+  --c-n-400: #6f747b;
+  --c-n-500: #92979e;
+  --c-n-600: #b3b8bf;
+  --c-n-700: #ccd0d6;
+  --c-n-800: #e2e5e9;
+  --c-n-900: #eff1f3;
+  --c-n-950: #fafbfc;
+
+  /* The brand seafoam, used at full strength here. Against this dark paper it
+     scores 13.71:1, so it needs no adjustment in this direction — which is the
+     opposite of the light theme, where the same value is unreadable. */
+  --c-accent: #93e9be;
+}
+
+/* ==========================================================================
+   DESIGN TOKENS
+   ========================================================================== */
+@theme {
+  /* surfaces & ink */
+  --color-paper: var(--c-paper);
+  --color-ink: var(--c-ink);
+  --color-line: var(--c-line);
+
+  /* neutral ramp — see the note above about the dark-mode inversion */
+  --color-n-50: var(--c-n-50);
+  --color-n-100: var(--c-n-100);
+  --color-n-200: var(--c-n-200);
+  --color-n-300: var(--c-n-300);
+  --color-n-400: var(--c-n-400);
+  --color-n-500: var(--c-n-500);
+  --color-n-600: var(--c-n-600);
+  --color-n-700: var(--c-n-700);
+  --color-n-800: var(--c-n-800);
+  --color-n-900: var(--c-n-900);
+  --color-n-950: var(--c-n-950);
+
+  --color-accent: var(--c-accent);
+
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Instrument Serif', ui-serif, Georgia, 'Times New Roman', serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+@layer base {
+  :root {
+    color-scheme: light;
+    --rail-w: 14rem; /* 224px — the fixed left rail */
+    scroll-padding-top: 5.5rem;
+  }
+
+  html {
+    background-color: var(--color-paper);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (min-width: 1024px) {
+    :root {
+      scroll-padding-top: 2rem;
+    }
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    letter-spacing: -0.006em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  /* Only present while the theme is actively changing, so an ordinary hover
+     or scroll transition is never slowed down by a global colour transition. */
+  html.is-switching,
+  html.is-switching *,
+  html.is-switching *::before,
+  html.is-switching *::after {
+    transition:
+      background-color 0.28s ease,
+      border-color 0.28s ease,
+      color 0.28s ease,
+      fill 0.28s ease,
+      stroke 0.28s ease,
+      outline-color 0.28s ease !important;
+  }
+
+  /* Only the pointer is fine enough to hover — do not paint hover states
+     on touch, where they stick after a tap. */
+  @media (hover: none) {
+    a:hover,
+    button:hover {
+      text-decoration-color: inherit;
+    }
+  }
+
+  a,
+  button {
+    transition:
+      color 0.18s ease,
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      opacity 0.18s ease,
+      text-decoration-color 0.18s ease;
+  }
+
+  :focus-visible {
+    outline: 1.5px solid var(--color-ink);
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+}
+
+/* ==========================================================================
+   COMPONENT PRIMITIVES
+   ========================================================================== */
+@layer components {
+  /* --- layout ------------------------------------------------------- */
+  .shell {
+    width: 100%;
+    max-width: 62rem;
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .shell {
+      padding-inline: 2rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .shell {
+      padding-inline: 3.5rem;
+    }
+  }
+
+  .section {
+    padding-block: 5.5rem;
+    /* No scroll-margin-top on purpose. The scrollport's
+       `scroll-padding-top` on :root already says how far an in-page link
+       should stop short of the top, and the browser adds both together —
+       declaring both made every section land 96px below the viewport top. */
+  }
+
+  @media (min-width: 768px) {
+    .section {
+      padding-block: 8.5rem;
+    }
+  }
+
+  /* --- smooth in-page scrolling, done by the browser ----------------- */
+  /*
+     This replaces a smooth-scroll library outright. `scroll-behavior: smooth`
+     is what the browser animates anchor jumps with, and it reads
+     `scroll-padding-top` below to know how far to stop short — so the side
+     rail, the mobile menu and "back to top" all land in exactly the same
+     place, with no JavaScript running at click time.
+
+     Under reduced motion it is switched off, so links jump. The browser
+     handles that correctly on its own; the override is here only to be
+     explicit about it.
+
+     The script takes over in-page scrolling and animates it by hand whatever
+     this setting says, so the rule above only matters on the no-JS path,
+     where an instant jump is the only thing available anyway.
+  */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  /* --- the mono label, used for every piece of metadata ------------- */
+  .meta {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  @media (min-width: 640px) {
+    .meta {
+      font-size: 0.6875rem;
+    }
+  }
+
+  /* --- a hairline that dissolves at both ends ----------------------- */
+  .rule {
+    height: 1px;
+    border: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-n-200) 14%,
+      var(--color-n-200) 86%,
+      transparent
+    );
+  }
+
+  /* --- the typewriter --------------------------------------------------- */
+  /*
+     No keyframes and no `animation-*` properties here at all. The typing is
+     driven frame by frame from JavaScript — `useTypewriter.js` writes
+     `clip-path` directly on each line.
+
+     This is a deliberate retreat from a CSS implementation that shipped
+     correctly, reported itself as attached, and still never played. CSS
+     animation here depended on a shorthand mixing custom properties, a
+     fill-mode subtlety and a media query — and when any of that goes wrong the
+     failure is completely silent. A rAF loop has no parse step to get wrong.
+
+     These rules are layout only, and the text rests **visible**: the hidden
+     state is applied by script, so with JavaScript off — or if the loop never
+     starts — every heading is simply there.
+
+     Used by the hero masthead (`SplitName.vue`) and by all eight section
+     titles (`TypeTitle.vue`), which is why the names are generic.
+
+     The section titles have since moved to the cipher effect below — they
+     resolve out of scrambled glyphs rather than being cropped in — but they
+     still share `.type-wrap` for the `max-content` block, so the masthead
+     keeps `.type-line` and the caret to itself.
+  */
+  .type-wrap {
+    position: relative;
+    display: block;
+    width: max-content;
+  }
+
+  .type-line {
+    display: block;
+    width: max-content;
+  }
+
+  .type-caret {
+    position: absolute;
+    top: 0.14em;
+    bottom: 0.14em;
+    left: 0;
+    width: 0.05em;
+    min-width: 2px;
+    opacity: 0;
+    background: var(--color-ink);
+    pointer-events: none;
+  }
+
+  /*
+     Added by script once a title has finished typing, so the caret leaves
+     instead of blinking at rest. The masthead keeps its caret permanently —
+     one cursor on an empty hero reads as a detail, eight down the page reads
+     as a cursor stuck in the document.
+  */
+  .type-caret--fade {
+    transition: opacity 260ms ease-out;
+  }
+
+  /* --- the section-title cipher -------------------------------------- */
+  /*
+     One box per character, because the cipher rewrites the *characters* rather
+     than revealing them — `clip-path` cannot hide a glyph that is already
+     spelled out correctly underneath.
+
+     `display: inline-block` is what lets a width be pinned on a cell, which is
+     what stops the word reflowing while it scrambles. `white-space: pre` is
+     what stops a space cell collapsing to zero width, and taking the gap in
+     "Tech Stack" with it.
+  */
+  .cipher-cell {
+    display: inline-block;
+    white-space: pre;
+  }
+
+  /*
+     Scrambling state. Dimmed rather than accented, and only while a position
+     is still gibberish — so the effect reads as the title resolving out of the
+     page instead of eight headings flaring the accent colour as they scroll
+     past. The class is added and removed by `useCipher.js`, never written in a
+     template.
+  */
+  .cipher-cell--on {
+    color: var(--color-n-400);
+  }
+
+  /*
+     Deliberately NOT wrapped in a `prefers-reduced-motion` block.
+
+     The masthead typing used to be switched off under reduced motion, which
+     made it the one animated thing on the page that did not run while the
+     smooth scroll did — incoherent, and it read as "the effect is broken"
+     rather than as a considered decision. If the scroll is going to move
+     regardless, the name is going to type regardless.
+
+     To restore the guard, wrap the two rules above in
+     `@media (prefers-reduced-motion: reduce) { … }` with `animation: none` and
+     `display: none` on the caret.
+  */
+
+  /* --- rules draw in from the left as their section arrives ----------- */
+  /*
+     The hidden state is opt-in: the `.draw` class is added by JavaScript, and
+     without it a rule simply renders at full width. That ordering matters —
+     a hairline that depends on an observer firing to become visible is a
+     hairline that can disappear entirely if that observer never runs.
+
+     The draw-in plays regardless of `prefers-reduced-motion`, like the rest of
+     the site's motion. There was a `transition: none` override here; it was
+     removed with the blanket reset, and `useReveal.js` already reveals
+     immediately under reduced motion, so the two together meant the rules never
+     animated for anyone with the setting on.
+  */
+  .draw .rule {
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .draw.is-revealed .rule {
+    transform: scaleX(1);
+  }
+
+  .rule--ink {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-n-300) 14%,
+      var(--color-n-300) 86%,
+      transparent
+    );
+  }
+
+  /* --- links -------------------------------------------------------- */
+  .link-underline {
+    text-decoration: underline;
+    text-decoration-color: var(--color-n-300);
+    text-underline-offset: 0.28em;
+    text-decoration-thickness: 1px;
+  }
+
+  .link-underline:hover {
+    text-decoration-color: var(--color-accent);
+  }
+
+  /* --- scroll reveal ------------------------------------------------ */
+  .reveal {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+    transition:
+      opacity 0.7s var(--ease-expo),
+      transform 0.7s var(--ease-expo);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  .reveal.is-revealed {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* --- line-by-line typography reveal ------------------------------- */
+  .reveal-text {
+    display: block;
+  }
+
+  .reveal-text__line {
+    display: block;
+    overflow: hidden;
+    /* room for descenders, removed again so the leading stays honest */
+    padding-block-end: 0.14em;
+    margin-block-end: -0.14em;
+  }
+
+  .reveal-text__inner {
+    display: block;
+    transform: translate3d(0, 105%, 0);
+    transition: transform 0.85s var(--ease-expo);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  .reveal-text.is-revealed .reveal-text__inner {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+   The design stays exactly the same. It just arrives already assembled.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  /*
+    Deliberately NOT a blanket `* { animation-duration: 0.01ms !important }`.
+
+    There was one here, and it was quietly switching off every animation and
+    transition on the site — the chat panel, the message arrivals, the caret, the
+    typing dots, the rule draw-ins — for anyone whose OS has reduced motion set.
+    That is the majority of the site's motion, killed by a rule four lines long.
+
+    It also cost a long debugging detour. A frozen timeline and a reset
+    animation both report `animation-duration: 1e-05s`, which is what 0.01ms is
+    rounded to, so the symptom was indistinguishable from a browser that could
+    not run CSS animations at all.
+
+    This site's motion is short, small and decorative, and the brief is that it
+    plays regardless of the OS setting — the same decision already taken for the
+    smooth scroll and the masthead. The one thing still honoured below is the
+    scroll reveal, which is the only large motion on the page.
+
+    `scroll-behavior` is handled separately and further up, on `html` alone.
+  */
+  .reveal,
+  .reveal-text__inner {
+    opacity: 1;
+    transform: none;
+  }
+}

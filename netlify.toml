@@ -1,0 +1,90 @@
+# Netlify build configuration.
+#
+# Only applies when deploying through the Netlify CLI or a linked Git repo. If
+# you deploy by dragging `dist/` into the browser, Netlify never reads this file
+# and the function will not be deployed — see the note in README.md.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+# ===========================================================================
+# Security headers
+#
+# Every header below is deliberate, and the CSP is the reason this file is
+# longer than three lines.
+#
+# The script hash was computed from the *built* output, not written by hand:
+#
+#   1. npm run build
+#   2. Read dist/index.html, take the single inline <script> body
+#   3. sha256 its exact UTF-8 bytes
+#      PowerShell:
+#        $h=[System.IO.File]::ReadAllText('dist/index.html')
+#        $b=[regex]::Match($h,'(?s)<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>').Groups[1].Value
+#        -join([System.Security.Cryptography.SHA256]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes($b))|%{$_.ToString('x2')})
+#   4. paste it into script-src below
+#
+# **If you edit the inline theme script in index.html, recompute this.** A stale
+# hash does not break the site — it stops that one script, which is the
+# before-paint theme, so you get a light flash on a dark-theme load and a CSP
+# error in the console. Recoverable, but worth knowing.
+#
+# `style-src` needs 'unsafe-inline' and always will: Vue writes element styles
+# directly (the tilt, the caret, the scroll lock), and there is no nonce-based
+# way to cover that without a build plugin. Script injection is still blocked,
+# which is the protection that matters.
+# ===========================================================================
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = """
+      default-src 'self'; \
+      base-uri 'self'; \
+      object-src 'none'; \
+      frame-ancestors 'none'; \
+      form-action 'self'; \
+      script-src 'self' 'sha256-2efc9d4e83b858dd20a67f1c90a7414840055870e72f3673cc8681072bef17ce'; \
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
+      font-src 'self' https://fonts.gstatic.com; \
+      img-src 'self' data:; \
+      connect-src 'self'; \
+      manifest-src 'self'; \
+      upgrade-insecure-requests"""
+
+    # Refuse to have the browser guess a content type. Without this a file
+    # served as text/plain can be sniffed as something executable.
+    X-Content-Type-Options = "nosniff"
+
+    # Sends the full URL to your own origin, the origin only cross-origin, and
+    # nothing on downgrade. A portfolio is linked to from places, and this stops
+    # the referring path leaking to anywhere it is linked from.
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Clickjacking. `frame-ancestors` in the CSP above is the modern form and
+    # supersedes this, but the header is kept for older browsers.
+    X-Frame-Options = "DENY"
+
+    # This site has no camera, microphone, geolocation or interest-cohort
+    # surface. Saying so means a future bug cannot quietly add one.
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+
+    # HTTPS-only, two years, subdomains included. Not preloaded: preloading is a
+    # one-way door that needs domain registration, and that is your call.
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains"
+
+# The presence endpoint is live state and must never be cached, at Netlify or in
+# any browser. The function already sends this header, but pinning it here too
+# means a misconfigured build cannot serve a stale count.
+[[headers]]
+  for = "/api/viewers"
+  [headers.values]
+    Cache-Control = "no-store, max-age=0"
+
+# Hashed build assets never change under the same name, so they are safe to
+# cache hard. `index.html` must not be, or a deploy would never reach anyone.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

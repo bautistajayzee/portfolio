@@ -1,0 +1,32 @@
+# Normalise line endings on commit, check them out per-platform.
+#
+# This matters on Windows specifically: without it, a file committed with CRLF
+# then edited on Linux shows as a whole-file diff, which makes `git blame`
+# useless and hides the one line you actually changed. GitHub also renders
+# `.bat`/`.sh` and Markdown inconsistently without the `text` hints below.
+
+* text=auto eol=lf
+
+*.js    text eol=lf
+*.vue   text eol=lf
+*.css   text eol=lf
+*.html  text eol=lf
+*.md    text eol=lf
+*.toml  text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+
+*.jpg   binary
+*.jpeg  binary
+*.png   binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.pdf   binary
+
+# Keep the resume filename byte-exact. Its commas, spaces and parentheses are
+# load-bearing: the `download` attribute and the lightbox `src` both depend on
+# them, and a stray encoding change breaks the file silently.
+*.pdf   binary
+public/*.pdf binary
