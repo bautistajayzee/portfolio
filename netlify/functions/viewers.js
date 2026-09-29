@@ -31,20 +31,32 @@ const TTL_MS = 90_000
 const KEY = 'presence.json'
 
 /**
- * Coerce whatever is in the blob into a clean map of id -> timestamp.
+ * Coerce whatever came back from the blob into a clean map of id -> timestamp.
  *
  * The store is shared and long-lived, so it is not necessarily something this
  * function wrote — a bad shape must degrade to "nobody is here" rather than
  * throwing and taking the endpoint down.
+ *
+ * Accepts a JSON string *or* an already-parsed object, because the two are
+ * interchangeable here and getting it wrong is silent. This originally asked for
+ * `{ type: 'json' }`, which hands back a parsed object, and then called
+ * `JSON.parse` on that object. Every read threw, the catch below turned it into
+ * `{}`, and the counter reported "1" forever no matter how many people were
+ * actually on the page — the failure looked like correct behaviour, because
+ * there genuinely was one visitor per request from the function's point of view.
  */
 function parse(raw) {
   if (!raw) return {}
 
   let data
-  try {
-    data = JSON.parse(raw)
-  } catch {
-    return {}
+  if (typeof raw === 'object') {
+    data = raw
+  } else {
+    try {
+      data = JSON.parse(raw)
+    } catch {
+      return {}
+    }
   }
 
   if (!data || typeof data !== 'object' || Array.isArray(data)) return {}
@@ -129,7 +141,14 @@ export default async (request) => {
   const store = getStore({ name: 'viewers' })
   const now = Date.now()
 
-  const existing = parse(await store.get(KEY, { type: 'json' }).catch(() => null))
+  /*
+    Read as `text` and parse explicitly, rather than asking for `json` and
+    receiving an object. Strong consistency is stated rather than assumed: this
+    read races other visitors' heartbeats, and a stale read silently drops
+    somebody from the count instead of failing loudly.
+  */
+  const raw = await store.get(KEY, { type: 'text', consistency: 'strong' }).catch(() => null)
+  const existing = parse(raw)
 
   // Prune first, then apply this request. On the way in, keep our own entry so a
   // heartbeat refreshes rather than being judged against its own timestamp.
