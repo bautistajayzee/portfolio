@@ -55,7 +55,7 @@ const enlarged = ref(false)
         <button
           v-if="project.preview"
           type="button"
-          class="meta mt-1 inline-flex items-center gap-2 text-n-400 hover:text-accent md:mt-2"
+          class="meta mt-1 inline-flex items-center gap-2 py-1.5 text-n-400 hover:text-accent md:mt-2"
           :aria-label="`View screenshot of ${project.title}`"
           @click="enlarged = true"
         >
@@ -81,7 +81,7 @@ const enlarged = ref(false)
           :href="project.href"
           :target="project.href.startsWith('http') ? '_blank' : undefined"
           :rel="project.href.startsWith('http') ? 'noopener noreferrer' : undefined"
-          class="meta mt-1 inline-flex items-center gap-2 text-n-400 hover:text-accent md:mt-2"
+          class="meta mt-1 inline-flex items-center gap-2 py-1.5 text-n-400 hover:text-accent md:mt-2"
         >
           View
           <svg

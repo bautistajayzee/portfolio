@@ -158,7 +158,7 @@ onBeforeUnmount(() => {
               >
                 <a
                   :href="item.href"
-                  class="meta text-n-500 transition-colors duration-200 hover:text-ink"
+                  class="meta py-2 text-n-500 transition-colors duration-200 hover:text-ink"
                   :target="item.href.startsWith('http') ? '_blank' : undefined"
                   :rel="item.href.startsWith('http') ? 'noopener noreferrer' : undefined"
                 >

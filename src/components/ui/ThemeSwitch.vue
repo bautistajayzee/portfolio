@@ -86,6 +86,20 @@ const activeIndex = computed(() => options.findIndex((o) => o.value === preferen
       :style="{ transform: `translateX(calc(${activeIndex} * (100% + 0.125rem)))` }"
     ></span>
 
+    <!--
+      Each option is a 26px disc, which is left alone deliberately.
+
+      An invisible ring would be the obvious way to reach a 44px target, but the
+      three sit 2px apart: expanding each by 9px per side makes adjacent hit
+      areas overlap by 16px, and the overlap is awarded to whichever is later in
+      the DOM. Each disc would get ~28px of *reliable* target instead of the 26
+      it has now — a net loss dressed up as an improvement.
+
+      26px clears WCAG 2.2 AA (2.5.8 asks for 24x24). The 44px figure is Apple
+      HIG guidance and WCAG AAA, and a three-up segmented control at 44px would
+      be 144px wide — a third of a phone. The burger and the close button, which
+      have no such neighbour problem, do carry the ring.
+    -->
     <button
       v-for="option in options"
       :key="option.value"

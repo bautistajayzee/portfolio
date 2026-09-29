@@ -80,10 +80,18 @@ watch(
       <a href="#home" class="text-[0.9375rem] font-semibold tracking-[-0.02em]">
         {{ profile.shortName }}
       </a>
+      <!--
+        `after:-inset-1` is a 6px invisible ring on every side, taking this from
+        a 32px target to 44px without moving the icon or the bar's height.
+
+        Padding would have done the same job but changed the layout — the icon
+        would sit further in, or the bar would grow. A pseudo-element overlaps
+        instead of pushing.
+      -->
       <button
         ref="openButton"
         type="button"
-        class="-mr-1.5 p-1.5 text-n-600 hover:text-ink"
+        class="relative -mr-1.5 p-1.5 text-n-600 after:absolute after:-inset-1 after:content-[''] hover:text-ink"
         aria-label="Open menu"
         :aria-expanded="open"
         aria-controls="mobile-menu"
@@ -134,7 +142,7 @@ watch(
       <button
         ref="closeButton"
         type="button"
-        class="-mr-1.5 p-1.5 text-n-600 hover:text-ink"
+        class="relative -mr-1.5 p-1.5 text-n-600 after:absolute after:-inset-1 after:content-[''] hover:text-ink"
         aria-label="Close menu"
         @click="close"
       >
@@ -198,7 +206,15 @@ watch(
           <p class="meta text-n-400">Get in touch</p>
         </div>
 
-        <a :href="`mailto:${profile.email}`" class="link-underline mt-3 block break-all text-[0.9375rem]">
+        <!--
+          `py-2` makes this a 44px-tall target. It was 26px — the flattest thing
+          in the menu, and the only thing here a visitor is actively invited to
+          tap.
+        -->
+        <a
+          :href="`mailto:${profile.email}`"
+          class="link-underline mt-1 block break-all py-2 text-[0.9375rem]"
+        >
           {{ profile.email }}
         </a>
       </div>

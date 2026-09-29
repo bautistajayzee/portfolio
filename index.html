@@ -60,25 +60,38 @@
       })()
     </script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!--
-      Trimmed to what is actually set on this page, after auditing the built CSS
-      rather than guessing.
+      Fonts are self-hosted: three `latin`-subset woff2 files in `public/fonts`,
+      declared in `src/style.css`. See the note at the top of that file for why,
+      and for the licence.
 
-      - `Instrument Sans` loses its `ital` axis. The only italic on the site is
-        the masthead's second line, which is Instrument **Serif**; nothing ever
-        applies italic to the sans stack, so a whole variable italic file was
-        being downloaded and thrown away.
-      - `IBM Plex Mono` loses `500`. Mono is only ever reached through `.meta`,
-        which is `font-weight: 400`.
+      They are preloaded, which was not possible while they came from a CDN.
+      From Google the browser had to fetch the stylesheet first, read the woff2
+      URLs out of it, and only then start the font download — a two-hop chain on
+      the critical path. Same-origin `preload` starts all three in parallel with
+      the CSS.
 
-      Adding a weight or an italic to the sans or the mono means adding it back
-      here, or the browser will synthesise it.
+      Only the two that paint above the fold are preloaded. The mono is used for
+      11px metadata, `font-display: swap` shows a fallback within a frame or
+      two, and preloading a face nothing waits for would just compete for
+      bandwidth with the ones that matter.
+
+      To add a weight, a style, or a character outside `latin`, add a file and
+      a face in style.css. Nothing here needs changing.
     -->
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400&family=Instrument+Sans:wght@400..700&family=Instrument+Serif:ital@0;1&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      href="/fonts/instrument-sans-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/instrument-serif-italic-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
     />
   </head>
 

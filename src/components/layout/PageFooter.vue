@@ -30,7 +30,7 @@ const year = new Date().getFullYear()
           top of the document rather than to the hero's top edge. The href stays
           so the link still works with JavaScript off.
         -->
-        <a href="#home" data-scroll-top class="meta w-fit text-n-400 hover:text-ink">
+        <a href="#home" data-scroll-top class="meta w-fit py-2 text-n-400 hover:text-ink">
           Back to top ↑
         </a>
       </div>

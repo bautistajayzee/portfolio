@@ -261,7 +261,26 @@ onBeforeUnmount(() => window.clearTimeout(copyTimer))
           :class="canSend ? '' : 'pointer-events-none opacity-35'"
           :aria-disabled="canSend ? undefined : 'true'"
         >
-          Send letter →
+          Send letter
+          <!--
+            An arrow as SVG, not as a character. U+2192 is outside the `latin`
+            subset every font here is served in, so the glyph was being drawn by
+            whatever fallback font the OS happened to have — a different shape,
+            weight and slant from the label beside it, on the one button that
+            matters most in the section.
+          -->
+          <svg
+            viewBox="0 0 16 16"
+            class="ml-1.5 inline-block h-3 w-3 align-[-0.05em]"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M2.5 8H13M9 4L13 8L9 12" />
+          </svg>
         </a>
 
         <!--
@@ -282,11 +301,32 @@ onBeforeUnmount(() => window.clearTimeout(copyTimer))
 
         <button
           type="button"
-          class="meta ml-auto text-n-500 transition-colors duration-200 hover:text-ink"
+          class="meta ml-auto py-2 text-n-500 transition-colors duration-200 hover:text-ink"
           :aria-label="`Copy ${profile.email} to clipboard`"
           @click="copyAddress"
         >
-          <span aria-hidden="true">{{ copied ? 'Copied ✓' : 'Copy address' }}</span>
+          <!--
+            The tick is SVG for the same reason as the arrow above: U+2713 is
+            outside `latin` and was rendering in a fallback face.
+          -->
+          <span class="inline-flex items-center gap-1">
+            <template v-if="copied">
+              <svg
+                viewBox="0 0 16 16"
+                class="h-3 w-3"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 8.5 6.5 12 13 4.5" />
+              </svg>
+              Copied
+            </template>
+            <template v-else>Copy address</template>
+          </span>
         </button>
       </div>
 

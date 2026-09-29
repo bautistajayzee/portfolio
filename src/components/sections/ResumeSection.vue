@@ -65,7 +65,7 @@ const enlarged = ref(false)
           <div class="flex flex-wrap items-center gap-x-6 gap-y-4 md:col-span-4 md:justify-end">
             <button
               type="button"
-              class="link-underline meta inline-flex items-center gap-2 text-n-400 transition-colors duration-200 hover:text-ink"
+              class="link-underline meta inline-flex items-center gap-2 py-1.5 text-n-400 transition-colors duration-200 hover:text-ink"
               @click="enlarged = true"
             >
               View Resume

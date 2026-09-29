@@ -35,6 +35,10 @@
 # directly (the tilt, the caret, the scroll lock), and there is no nonce-based
 # way to cover that without a build plugin. Script injection is still blocked,
 # which is the protection that matters.
+#
+# Note what is NOT in this policy any more: `fonts.googleapis.com` and
+# `fonts.gstatic.com`. The fonts are self-hosted, so the page makes no
+# third-party connection at all and `font-src` is just `'self'`.
 # ===========================================================================
 [[headers]]
   for = "/*"
@@ -46,8 +50,8 @@
       frame-ancestors 'none'; \
       form-action 'self'; \
       script-src 'self' 'sha256-2efc9d4e83b858dd20a67f1c90a7414840055870e72f3673cc8681072bef17ce'; \
-      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
-      font-src 'self' https://fonts.gstatic.com; \
+      style-src 'self' 'unsafe-inline'; \
+      font-src 'self'; \
       img-src 'self' data:; \
       connect-src 'self'; \
       manifest-src 'self'; \
@@ -69,7 +73,6 @@
     # This site has no camera, microphone, geolocation or interest-cohort
     # surface. Saying so means a future bug cannot quietly add one.
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-
     # HTTPS-only, two years, subdomains included. Not preloaded: preloading is a
     # one-way door that needs domain registration, and that is your call.
     Strict-Transport-Security = "max-age=63072000; includeSubDomains"

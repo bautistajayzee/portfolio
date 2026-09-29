@@ -61,10 +61,12 @@ const channels = social.filter((item) => item.href.startsWith('http'))
             {{ contact.heading }}
           </h3>
 
+          <!-- `py-1` takes this from a 22px-tall target to 30px. It is a mailto,
+               so it is a thing people actually tap. -->
           <a
             v-reveal="150"
             :href="`mailto:${contact.details[0].value}`"
-            class="link-underline mt-9 inline-block break-all text-[clamp(1.125rem,3vw,1.75rem)] leading-[1.2] tracking-[-0.02em]"
+            class="link-underline mt-8 inline-block break-all py-1 text-[clamp(1.125rem,3vw,1.75rem)] leading-[1.2] tracking-[-0.02em]"
           >
             {{ contact.details[0].value }}
           </a>
@@ -94,7 +96,7 @@ const channels = social.filter((item) => item.href.startsWith('http'))
               >
                 <a
                   :href="item.href"
-                  class="meta text-n-500 transition-colors duration-200 hover:text-ink"
+                  class="meta py-2 text-n-500 transition-colors duration-200 hover:text-ink"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
