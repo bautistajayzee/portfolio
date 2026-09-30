@@ -206,6 +206,12 @@ export const experience = [
  *   Tailwind, so listing a CSS framework that appears nowhere would be a claim
  *   about capability rather than a record of it.
  *
+ * Next.js went the same way, for the same reason and with less excuse. It was in
+ * the list because it is a good framework, not because it had been used — there
+ * is no React anywhere in this repository and no project above built in it. A
+ * tag a reader cannot get a straight answer to is worse than a shorter list, and
+ * "still learning it" belongs in the lead line rather than in a claim here.
+ *
  * Within Frontend, Chart.js and Tabulator stay on the strength of the projects
  * above — the point-of-sale dashboard charts sales and its records are a grid —
  * not on anything in this repository, which is the point: the stack describes
@@ -220,7 +226,6 @@ export const techStack = [
     label: 'Frontend',
     items: [
       'Vue 3',
-      'Next.js',
       'Tailwind CSS',
       'Styled Components',
       'Vite',
