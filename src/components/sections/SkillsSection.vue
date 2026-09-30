@@ -17,9 +17,15 @@ const head = sections.find((s) => s.id === 'skills')
       />
 
       <!--
-        Skills are set as large type rather than chips. Four things don't need
+        Skills are set as large type rather than chips. Seven things don't need
         to be a grid of rounded boxes, and setting them big keeps the page
         honest about how little there is here.
+
+        One list, not two. The hardware skills are grouped on most portfolios and
+        on a reference sheet, but splitting this into labelled clusters would
+        mean a subheading component that exists for nothing else on the page. The
+        numbering runs straight through instead, and the closing note below is
+        where the level of the hardware work gets said plainly.
       -->
       <div class="mt-14 md:mt-16">
         <div
@@ -45,8 +51,10 @@ const head = sections.find((s) => s.id === 'skills')
 
       <p v-reveal="360" class="mt-9 max-w-[34rem] text-[0.875rem] leading-[1.75] text-n-400">
         The design and video work is where the years went. The programming came
-        later, out of coursework — the tools are listed in the next section, and
-        the systems built with them are below that.
+        later, out of coursework. The hardware is practical rather than
+        professional — enough to build, strip and service a machine, not a repair
+        bench. The tools are listed in the next section, and the systems built
+        with them are below that.
       </p>
     </div>
   </section>

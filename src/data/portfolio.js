@@ -308,6 +308,18 @@ export const skills = [
     name: 'Active Listening',
     detail: 'Reading what a client actually wants before I start making anything. It is the cheapest way to avoid rework.',
   },
+  {
+    name: 'PC Assembly',
+    detail: 'Building a desktop from parts — board, CPU and cooler, memory, storage, then the front panel and power wiring — and getting it to POST the first time.',
+  },
+  {
+    name: 'Disassembly & Troubleshooting',
+    detail: 'Stripping a machine back down without losing track of it, and narrowing a fault to the one part at fault rather than replacing everything that might be.',
+  },
+  {
+    name: 'Hardware Maintenance',
+    detail: 'Cleaning, reseating connections, and the routine servicing that keeps a machine from failing in the first place.',
+  },
 ]
 
 /**
@@ -416,7 +428,7 @@ export const chat = [
     id: 'skills',
     chip: 'My Skills',
     answer:
-      "Four things I trained on first: graphic design, video editing, computer literacy, and active listening. The design and video side came from four years of freelance client work, and it still runs — the Figma work on Komiks and GoPeso is the same instinct turned on interfaces. I've since been building full-stack web systems on top of them: plain PHP and MySQL for the enrollment and point-of-sale work, and Laravel for the learning platform.",
+      "Seven things I trained on: graphic design, video editing, computer literacy, active listening, and the hardware basics — PC assembly, disassembly and troubleshooting, and maintenance. The design and video side came from four years of freelance client work, and it still runs — the Figma work on Komiks and GoPeso is the same instinct turned on interfaces. The hardware is practical, not professional: enough to build and service a machine, not a repair bench. I've since been building full-stack web systems on top of them: plain PHP and MySQL for the enrollment and point-of-sale work, and Laravel for the learning platform.",
   },
   {
     id: 'stack',
