@@ -180,16 +180,23 @@ export const experience = [
  *   data-access layer read like a storage engine — and put MySQL and MariaDB,
  *   the things that actually hold the rows, in a category with something that
  *   only talks to them.
- * · **SQL sits under Database, not Languages.** The query language belongs with
- *   what it queries. HTML and CSS stay in Languages because they are markup and
- *   styling, not something you talk to a server with.
+ * · **SQL sits under Languages.** It is a query language, and the convention on
+ *   a portfolio is to list it with the other languages rather than with the
+ *   engines. MySQL, MariaDB and MongoDB are the things it queries, so they are
+ *   what Database holds.
+ * · **Languages carries HTML and CSS.** Neither is a programming language, and
+ *   every portfolio lists them here anyway. Excluding them would be pedantry
+ *   that reads as a gap rather than as rigour.
+ * · **Webpack is a build tool, so it lives in Tools & Platforms.** Vite sits in
+ *   Frontend alongside the frameworks it serves, and one bundler per category is
+ *   the reason neither list has to repeat the other.
  * · **Vue.js is not listed beside Vue 3.** They are the same thing, and two tags
  *   for one framework is the duplicate problem this list is meant to avoid. The
  *   version number is the more useful half of the name anyway.
  * · **One technology, one category.** A name appearing twice reads as two
  *   claims rather than one skill, and it makes the list impossible to scan.
- *   Node.js and MySQL both moved out of Tools & Platforms and Database to sit
- *   under Backend, where the server-side work they are used for lives. Laravel
+ *   Node.js moved out of Tools & Platforms to sit under Backend, where the
+ *   server-side work it is used for lives. Laravel
  *   is not listed again beside Laravel 13 — that entry already is Laravel, and
  *   a second tag next to it would be padding, which is what this list is
  *   written to avoid.
@@ -207,7 +214,7 @@ export const experience = [
 export const techStack = [
   {
     label: 'Languages',
-    items: ['JavaScript', 'PHP', 'HTML', 'CSS'],
+    items: ['JavaScript', 'PHP', 'Python', 'Java', 'SQL', 'HTML', 'CSS'],
   },
   {
     label: 'Frontend',
@@ -217,7 +224,6 @@ export const techStack = [
       'Tailwind CSS',
       'Styled Components',
       'Vite',
-      'Webpack',
       'GSAP',
       'Chart.js',
       'Tabulator',
@@ -235,18 +241,14 @@ export const techStack = [
       'PHPMailer',
       'PayMongo',
       'Node.js',
-      'Python',
-      'Java',
-      'MySQL',
-      'MongoDB',
     ],
   },
   {
     label: 'Database',
-    items: ['SQL', 'MariaDB'],
+    items: ['MySQL', 'MariaDB', 'MongoDB'],
   },
   {
-    label: 'Design',
+    label: 'Design & Video',
     items: ['Figma', 'Photoshop', 'Illustrator', 'Canva', 'Premiere Pro', 'After Effects'],
   },
   {
@@ -256,6 +258,7 @@ export const techStack = [
       'GitHub',
       'VS Code',
       'Composer',
+      'Webpack',
       'PHPUnit',
       'Laravel Pint',
       'XAMPP',
