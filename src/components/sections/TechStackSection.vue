@@ -13,7 +13,7 @@ const head = sections.find((s) => s.id === 'stack')
         v-reveal
         :index="head.index"
         :title="head.label"
-        lead="The tools, frameworks, and platforms I reach for — across the front end, back end, infrastructure, and AI."
+        lead="The tools and technologies I use across development, design, video editing, and AI — while continuing to learn and grow as a developer."
       />
 
       <!--
