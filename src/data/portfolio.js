@@ -29,7 +29,7 @@ export const profile = {
   role: 'IT student & aspiring IT professional',
   location: 'Cavite, Philippines',
   school: 'Dasmariñas, Cavite',
-  photo: '/1X1-PFP.PNG',
+  photo: '/photo.webp',
   email: 'jayzeegbautista@gmail.com',
 }
 

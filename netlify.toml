@@ -33,6 +33,16 @@
 #        [Convert]::ToBase64String([System.Security.Cryptography.SHA256]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes($b)))
 #   4. paste it into script-src below, keeping the `sha256-` prefix
 #
+# The second hash is not ours. Netlify injects a deploy-status HUD into pages it
+# serves, and that script pulls in an inline one of its own, which this policy
+# was blocking. A blocked script is a console error, and Lighthouse scores Best
+# Practices on console errors — 92 out of 100 purely because of a debug tool
+# belonging to the host. The hash admits that one exact script and nothing else.
+#
+# It is a hash, not a nonce or 'unsafe-inline', so it cannot be used to smuggle
+# anything else in. If Netlify ever changes that script the hash stops matching
+# and the error returns, which is where this started.
+#
 # **Base64, not hex.** A Content-Security-Policy hash is `sha256-<base64>`. Hex
 # is accepted nowhere in the spec, and a hex value fails *silently and visibly at
 # once*: every check that compares hex to hex still passes, so the value looks
@@ -63,7 +73,7 @@
       object-src 'none'; \
       frame-ancestors 'none'; \
       form-action 'self'; \
-      script-src 'self' 'sha256-LvydToO4WN0gpn8ckKdBSEAFWHDnLzZzzIaBByvvF84='; \
+      script-src 'self' 'sha256-LvydToO4WN0gpn8ckKdBSEAFWHDnLzZzzIaBByvvF84=' 'sha256-mTJ4cJaTm2Gw95GeXEpZdvEEY9ybh6FZu1bwcNE7QlY='; \
       style-src 'self' 'unsafe-inline'; \
       font-src 'self'; \
       img-src 'self' data:; \
