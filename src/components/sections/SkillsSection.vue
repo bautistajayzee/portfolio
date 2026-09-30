@@ -17,7 +17,7 @@ const head = sections.find((s) => s.id === 'skills')
       />
 
       <!--
-        Skills are set as large type rather than chips. Seven things don't need
+        Skills are set as large type rather than chips. Six things don't need
         to be a grid of rounded boxes, and setting them big keeps the page
         honest about how little there is here.
 
@@ -52,9 +52,9 @@ const head = sections.find((s) => s.id === 'skills')
       <p v-reveal="360" class="mt-9 max-w-[34rem] text-[0.875rem] leading-[1.75] text-n-400">
         The design and video work is where the years went. The programming came
         later, out of coursework. The hardware is practical rather than
-        professional — enough to build, strip and service a machine, not a repair
-        bench. The tools are listed in the next section, and the systems built
-        with them are below that.
+        professional — enough to build a machine and take it apart to find what
+        is wrong, not a repair bench. The tools are listed in the next section,
+        and the systems built with them are below that.
       </p>
     </div>
   </section>

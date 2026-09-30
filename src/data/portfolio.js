@@ -316,10 +316,6 @@ export const skills = [
     name: 'Disassembly & Troubleshooting',
     detail: 'Stripping a machine back down without losing track of it, and narrowing a fault to the one part at fault rather than replacing everything that might be.',
   },
-  {
-    name: 'Hardware Maintenance',
-    detail: 'Cleaning, reseating connections, and the routine servicing that keeps a machine from failing in the first place.',
-  },
 ]
 
 /**
@@ -428,7 +424,7 @@ export const chat = [
     id: 'skills',
     chip: 'My Skills',
     answer:
-      "Seven things I trained on: graphic design, video editing, computer literacy, active listening, and the hardware basics — PC assembly, disassembly and troubleshooting, and maintenance. The design and video side came from four years of freelance client work, and it still runs — the Figma work on Komiks and GoPeso is the same instinct turned on interfaces. The hardware is practical, not professional: enough to build and service a machine, not a repair bench. I've since been building full-stack web systems on top of them: plain PHP and MySQL for the enrollment and point-of-sale work, and Laravel for the learning platform.",
+      "Six things I trained on: graphic design, video editing, computer literacy, active listening, and the hardware basics — PC assembly, and disassembly and troubleshooting. The design and video side came from four years of freelance client work, and it still runs — the Figma work on Komiks and GoPeso is the same instinct turned on interfaces. The hardware is practical, not professional: enough to build a machine and take it apart to find what is wrong, not a repair bench. I've since been building full-stack web systems on top of them: plain PHP and MySQL for the enrollment and point-of-sale work, and Laravel for the learning platform.",
   },
   {
     id: 'stack',
