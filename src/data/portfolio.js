@@ -180,6 +180,19 @@ export const experience = [
  *   data-access layer read like a storage engine — and put MySQL and MariaDB,
  *   the things that actually hold the rows, in a category with something that
  *   only talks to them.
+ * · **SQL sits under Database, not Languages.** The query language belongs with
+ *   what it queries. HTML and CSS stay in Languages because they are markup and
+ *   styling, not something you talk to a server with.
+ * · **Vue.js is not listed beside Vue 3.** They are the same thing, and two tags
+ *   for one framework is the duplicate problem this list is meant to avoid. The
+ *   version number is the more useful half of the name anyway.
+ * · **One technology, one category.** A name appearing twice reads as two
+ *   claims rather than one skill, and it makes the list impossible to scan.
+ *   Node.js and MySQL both moved out of Tools & Platforms and Database to sit
+ *   under Backend, where the server-side work they are used for lives. Laravel
+ *   is not listed again beside Laravel 13 — that entry already is Laravel, and
+ *   a second tag next to it would be padding, which is what this list is
+ *   written to avoid.
  * · **A name has to be verifiable here or it does not go in.** Bootstrap was
  *   dropped from Frontend because nothing on this site used it: no dependency,
  *   no CDN tag, no class in the markup. Every project on this page is Vue with
@@ -194,19 +207,43 @@ export const experience = [
 export const techStack = [
   {
     label: 'Languages',
-    items: ['JavaScript', 'PHP', 'SQL', 'HTML', 'CSS'],
+    items: ['JavaScript', 'PHP', 'HTML', 'CSS'],
   },
   {
     label: 'Frontend',
-    items: ['Vue 3', 'Tailwind CSS', 'Vite', 'GSAP', 'Chart.js', 'Tabulator'],
+    items: [
+      'Vue 3',
+      'Next.js',
+      'Tailwind CSS',
+      'Styled Components',
+      'Vite',
+      'Webpack',
+      'GSAP',
+      'Chart.js',
+      'Tabulator',
+    ],
   },
   {
     label: 'Backend',
-    items: ['PHP 8', 'Laravel 13', 'Laravel Fortify', 'Blade', 'Eloquent', 'PDO', 'PHPMailer', 'PayMongo'],
+    items: [
+      'PHP 8',
+      'Laravel 13',
+      'Laravel Fortify',
+      'Blade',
+      'Eloquent',
+      'PDO',
+      'PHPMailer',
+      'PayMongo',
+      'Node.js',
+      'Python',
+      'Java',
+      'MySQL',
+      'MongoDB',
+    ],
   },
   {
     label: 'Database',
-    items: ['MySQL', 'MariaDB'],
+    items: ['SQL', 'MariaDB'],
   },
   {
     label: 'Design',
@@ -219,7 +256,6 @@ export const techStack = [
       'GitHub',
       'VS Code',
       'Composer',
-      'Node.js',
       'PHPUnit',
       'Laravel Pint',
       'XAMPP',
@@ -233,7 +269,17 @@ export const techStack = [
   },
   {
     label: 'AI',
-    items: ['ChatGPT', 'Claude', 'Gemini', 'GitHub Copilot', 'Cursor', 'Cline', 'OpenCode', 'OpenRouter'],
+    items: [
+      'ChatGPT',
+      'Claude',
+      'Gemini',
+      'GitHub Copilot',
+      'Cursor',
+      'Cline',
+      'OpenCode',
+      'OpenRouter',
+      'Antigravity',
+    ],
   },
 ]
 
@@ -368,7 +414,7 @@ export const chat = [
     id: 'stack',
     chip: 'Tech Stack',
     answer:
-      "Mostly PHP and JavaScript. On the front end that means Vue and Tailwind, with GSAP for scroll-linked motion. On the back end it's plain PHP and MySQL for the enrollment and point-of-sale work, and Laravel for the learning platform. For design it's Figma, alongside Photoshop, Illustrator and Canva. I work in VS Code with Git and GitHub, host on Netlify and InfinityFree behind Cloudflare, and I've been building with AI tools throughout — ChatGPT, Claude, Gemini, GitHub Copilot, Cursor, Cline and OpenCode.",
+      "Mostly PHP and JavaScript. On the front end that means Vue and Tailwind, with GSAP for scroll-linked motion. On the back end it's plain PHP and MySQL for the enrollment and point-of-sale work, and Laravel for the learning platform. For design it's Figma, alongside Photoshop, Illustrator and Canva. I work in VS Code with Git and GitHub, host on Netlify and InfinityFree behind Cloudflare, and I've been building with AI tools throughout — ChatGPT, Claude, Gemini, GitHub Copilot, Cursor, Cline, OpenCode, OpenRouter and Antigravity.",
   },
   {
     id: 'experience',
