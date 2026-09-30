@@ -91,14 +91,14 @@ export const education = [
     period: '2024 — Present',
     title: 'Bachelor of Science in Information Technology',
     institution: 'National College of Science and Technology',
-    detail: 'Dasmariñas, Cavite · STEM strand',
+    detail: 'Dasmariñas, Cavite',
     note: 'Coursework across programming, systems analysis, networking, and database management, alongside a continuing freelance practice in design.',
   },
   {
     period: '2021 — 2024',
     title: 'Senior High School',
     institution: 'Tropical Innovative School of Excellence, Inc.',
-    detail: 'Tagaytay City, Cavite',
+    detail: 'Tagaytay City, Cavite · STEM strand',
   },
   {
     period: '2018 — 2021',
