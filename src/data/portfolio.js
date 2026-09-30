@@ -383,6 +383,10 @@ export const projects = [
     // `node-id` is kept so the link lands on the frame. The Figma file name is
     // "GARMINO-BAUTISTA-LAB-1" — the link has to match it, the title need not.
     href: 'https://www.figma.com/design/d6zsqxJEd2p68LhrSq8wkR/GARMINO-BAUTISTA-LAB-1?node-id=1-2',
+    // "View" on its own does not say where it goes, and these two rows have no
+    // screenshot to hint at it. Naming the destination is the difference between
+    // a link and a promise.
+    linkLabel: 'View in Figma',
   },
   {
     title: 'GoPeso',
@@ -394,6 +398,7 @@ export const projects = [
     // file name is "BAUTISTA_JAYZEE_BSIT31A1" — the link has to match it, the
     // title need not.
     href: 'https://www.figma.com/design/0qxjUMFrh0Q5LgU9KEBrvC/BAUTISTA_JAYZEE_BSIT31A1?node-id=0-1',
+    linkLabel: 'View in Figma',
   },
 ]
 

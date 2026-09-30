@@ -55,7 +55,7 @@ const enlarged = ref(false)
         <button
           v-if="project.preview"
           type="button"
-          class="meta mt-1 inline-flex items-center gap-2 py-1.5 text-n-400 hover:text-accent md:mt-2"
+          class="meta mt-1 inline-flex items-center gap-2 whitespace-nowrap py-1.5 text-n-400 hover:text-accent md:mt-2"
           :aria-label="`View screenshot of ${project.title}`"
           @click="enlarged = true"
         >
@@ -81,9 +81,28 @@ const enlarged = ref(false)
           :href="project.href"
           :target="project.href.startsWith('http') ? '_blank' : undefined"
           :rel="project.href.startsWith('http') ? 'noopener noreferrer' : undefined"
-          class="meta mt-1 inline-flex items-center gap-2 py-1.5 text-n-400 hover:text-accent md:mt-2"
+          class="meta mt-1 inline-flex items-center gap-2 whitespace-nowrap py-1.5 text-n-400 hover:text-accent md:mt-2"
         >
-          View
+          <!--
+            `linkLabel` lets the data name the destination, so "View in Figma"
+            is set once per project rather than taught to this component. The
+            rows that open a screenshot keep the plain "View", which is enough
+            there: the thing being viewed is right there in the row.
+
+            `whitespace-nowrap` is load-bearing. The text measures 106px and the
+            column is 120px, but with the 8px gap and the 16px icon the whole
+            thing needs 130px — so it wrapped into "View / in / Figma" stacked
+            vertically, 171px tall against the 30px it should be. The column is
+            right-aligned with a 32px gutter beside it, so letting the label run
+            10px long eats gutter rather than colliding with the description.
+
+            Deliberately no `aria-label`. Adding one that named the project
+            would put a different string in the accessible name than the one on
+            screen, and that is exactly the mismatch the label-in-name audit
+            flags. Leaving the visible text to be the name is both correct and
+            shorter.
+          -->
+          {{ project.linkLabel || 'View' }}
           <svg
             viewBox="0 0 16 16"
             class="h-4 w-4 text-n-300 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
