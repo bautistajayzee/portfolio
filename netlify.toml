@@ -33,15 +33,22 @@
 #        [Convert]::ToBase64String([System.Security.Cryptography.SHA256]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes($b)))
 #   4. paste it into script-src below, keeping the `sha256-` prefix
 #
-# The second hash is not ours. Netlify injects a deploy-status HUD into pages it
-# serves, and that script pulls in an inline one of its own, which this policy
-# was blocking. A blocked script is a console error, and Lighthouse scores Best
-# Practices on console errors — 92 out of 100 purely because of a debug tool
-# belonging to the host. The hash admits that one exact script and nothing else.
+# An earlier version of this file carried a second hash here, for the inline
+# script Netlify's deploy-status HUD injects. It has been removed because it
+# cannot work: Best Practices still scored 92 with it in place, so that script's
+# content varies between loads and a static hash can never match it. A hash that
+# looks like a fix but never matches is worse than none, and it widens the policy
+# for nothing.
 #
-# It is a hash, not a nonce or 'unsafe-inline', so it cannot be used to smuggle
-# anything else in. If Netlify ever changes that script the hash stops matching
-# and the error returns, which is where this started.
+# Best Practices reads 92 in a browser signed in to Netlify and 100 in every
+# other one. The HUD is injected only for a recognised Netlify session: a plain
+# request with a normal browser user agent and no cookies receives none of it.
+# So that 92 is the site owner seeing the host's own debug tool, not a visitor.
+# Confirmed against the deployed site from an unauthenticated browser: zero
+# console errors, zero CSP violations.
+#
+# If you are signed in to Netlify and auditing, an incognito window will show
+# 100 and is the reading that describes what other people get.
 #
 # **Base64, not hex.** A Content-Security-Policy hash is `sha256-<base64>`. Hex
 # is accepted nowhere in the spec, and a hex value fails *silently and visibly at
@@ -73,7 +80,7 @@
       object-src 'none'; \
       frame-ancestors 'none'; \
       form-action 'self'; \
-      script-src 'self' 'sha256-LvydToO4WN0gpn8ckKdBSEAFWHDnLzZzzIaBByvvF84=' 'sha256-mTJ4cJaTm2Gw95GeXEpZdvEEY9ybh6FZu1bwcNE7QlY='; \
+      script-src 'self' 'sha256-LvydToO4WN0gpn8ckKdBSEAFWHDnLzZzzIaBByvvF84='; \
       style-src 'self' 'unsafe-inline'; \
       font-src 'self'; \
       img-src 'self' data:; \
