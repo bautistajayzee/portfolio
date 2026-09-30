@@ -171,6 +171,25 @@ export const experience = [
  *
  * Thin categories are left thin on purpose. An empty row reads as honest; a
  * padded one reads as a claim, and padding is what makes these lists worthless.
+ *
+ * Two classification rules, because the boundaries are what make a stack list
+ * useful or decorative:
+ *
+ * · **An item sits where it is used, not where it is written.** Eloquent is
+ *   Laravel's ORM and it is backend work, so listing it under Database made a
+ *   data-access layer read like a storage engine — and put MySQL and MariaDB,
+ *   the things that actually hold the rows, in a category with something that
+ *   only talks to them.
+ * · **A name has to be verifiable here or it does not go in.** Bootstrap was
+ *   dropped from Frontend because nothing on this site used it: no dependency,
+ *   no CDN tag, no class in the markup. Every project on this page is Vue with
+ *   Tailwind, so listing a CSS framework that appears nowhere would be a claim
+ *   about capability rather than a record of it.
+ *
+ * Within Frontend, Chart.js and Tabulator stay on the strength of the projects
+ * above — the point-of-sale dashboard charts sales and its records are a grid —
+ * not on anything in this repository, which is the point: the stack describes
+ * the work, not this one page.
  */
 export const techStack = [
   {
@@ -179,15 +198,15 @@ export const techStack = [
   },
   {
     label: 'Frontend',
-    items: ['Vue 3', 'Tailwind CSS', 'Vite', 'GSAP', 'Bootstrap 5', 'Chart.js', 'Tabulator'],
+    items: ['Vue 3', 'Tailwind CSS', 'Vite', 'GSAP', 'Chart.js', 'Tabulator'],
   },
   {
     label: 'Backend',
-    items: ['PHP 8', 'Laravel 13', 'Laravel Fortify', 'Blade', 'PDO', 'PHPMailer', 'PayMongo'],
+    items: ['PHP 8', 'Laravel 13', 'Laravel Fortify', 'Blade', 'Eloquent', 'PDO', 'PHPMailer', 'PayMongo'],
   },
   {
     label: 'Database',
-    items: ['MySQL', 'MariaDB', 'Eloquent'],
+    items: ['MySQL', 'MariaDB'],
   },
   {
     label: 'Design',
@@ -214,7 +233,7 @@ export const techStack = [
   },
   {
     label: 'AI',
-    items: ['OpenCode', 'Claude', 'ChatGPT', 'Gemini', 'Copilot', 'Cursor', 'Cline', 'OpenRouter'],
+    items: ['ChatGPT', 'Claude', 'Gemini', 'GitHub Copilot', 'Cursor', 'Cline', 'OpenCode', 'OpenRouter'],
   },
 ]
 
@@ -349,7 +368,7 @@ export const chat = [
     id: 'stack',
     chip: 'Tech Stack',
     answer:
-      "Mostly PHP and JavaScript. On the front end that means Vue and Tailwind, with GSAP for scroll-linked motion. On the back end it's plain PHP and MySQL for the enrollment and point-of-sale work, and Laravel for the learning platform. For design it's Figma, alongside Photoshop, Illustrator and Canva. I work in VS Code with Git and GitHub, host on Netlify and InfinityFree behind Cloudflare, and I've been building with AI tools throughout — OpenCode, Claude, ChatGPT, Gemini, Copilot and Cursor.",
+      "Mostly PHP and JavaScript. On the front end that means Vue and Tailwind, with GSAP for scroll-linked motion. On the back end it's plain PHP and MySQL for the enrollment and point-of-sale work, and Laravel for the learning platform. For design it's Figma, alongside Photoshop, Illustrator and Canva. I work in VS Code with Git and GitHub, host on Netlify and InfinityFree behind Cloudflare, and I've been building with AI tools throughout — ChatGPT, Claude, Gemini, GitHub Copilot, Cursor, Cline and OpenCode.",
   },
   {
     id: 'experience',
