@@ -335,7 +335,7 @@ export const projects = [
     description:
       'A point-of-sale system for a vegan coffee shop. Cashiers ring up orders on a counter screen; stock is decremented inside a database transaction and every movement is logged. Admins manage the catalogue, staff accounts, and date-ranged sales reports with charts and CSV export.',
     href: null,
-    preview: '/vegan-brew.jpg',
+    preview: '/vegan-brew.webp',
     previewAlt:
       'The Vegan Brew landing page, showing a dark green hero reading “Experience the Art of Vegan Coffee” over a photograph of a café interior, with Explore Menu and Learn More buttons.',
     previewCaption: 'Vegan Brew — public landing page',
@@ -347,7 +347,7 @@ export const projects = [
     description:
       'An enrollment system for a private senior high school, in plain PHP and MySQL. Applicants apply online, upload their requirements, and track the application by reference number as the registrar moves it through a five-stage pipeline with server-enforced gates. Cashiers assess fees with voucher deductions, take PayMongo or cash, and issue numbered receipts.',
     href: null,
-    preview: '/Senior_High_School_Enrollment.jpg',
+    preview: '/Senior_High_School_Enrollment.webp',
     previewAlt:
       'The SHS Enrollment System landing page. A navigation bar reads Home, Start Application, Track Application, Contact. Below it, a badge announces that applications for school year 2026-2027 are open, over a hero headed “Your Future Starts Here” with Start Application and Track Application buttons, a short note about applying online and using a reference number, and a row of three figures: 4 academic strands, 100% DepEd aligned, voucher subsidy accepted.',
     previewCaption: 'SHS Enrollment System — public landing page',
@@ -359,7 +359,7 @@ export const projects = [
     description:
       'A self-hosted course platform for IT material, built on Laravel. Courses break into modules and lessons carrying text, code, PDF, and video; students work through them, sit the quiz at the end, and a certificate unlocks on completion. Free courses are open to anyone who enrolls, paid ones run through PayMongo.',
     href: null,
-    preview: '/IT_Learning_Hub.jpg',
+    preview: '/IT_Learning_Hub.webp',
     previewAlt:
       'The IT Learning Hub landing page in dark mode. A globe mark and title sit above a theme toggle and menu button. The hero reads “Learn IT by building the skills the work asks for” over text about courses in information technology, programming, web development and cybersecurity, with Browse courses and Sign in buttons, and a row of four figures: 2 free courses, 3 paid courses, 62 lessons, and 17 quizzes. Course cards continue below.',
     previewCaption: 'IT Learning Hub — public landing page',

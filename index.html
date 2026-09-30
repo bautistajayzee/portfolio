@@ -93,6 +93,41 @@
       type="font/woff2"
       crossorigin
     />
+
+    <!--
+      The portrait, preloaded.
+
+      `fetchpriority="high"` on the <img> was not enough on its own. The tag is
+      only reached after the stylesheet and the module bundle have downloaded,
+      parsed, executed and mounted, so the browser was not starting a 99 KB
+      request until well after it could have. A preload here puts it in flight
+      immediately, in parallel with the CSS and the JS, which is where the
+      largest element on the page should be fetched from.
+
+      Two links rather than one, each with the same `media` as the matching
+      `<source>` in ProfileImage. An earlier version used `imagesrcset` with
+      `imagesizes` on a single link, which is a different mechanism: it picks by
+      density, so at a desktop width it chose the 600px file while the
+      `<picture>` chose the 850px one. The preloaded file was discarded and the
+      second fetched anyway — two requests where one was intended, so the
+      preload bought nothing. Mirroring the media queries makes the two agree.
+    -->
+    <link
+      rel="preload"
+      as="image"
+      href="/photo-600.webp"
+      media="(max-width: 640px)"
+      fetchpriority="high"
+      type="image/webp"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/photo.webp"
+      media="(min-width: 641px)"
+      fetchpriority="high"
+      type="image/webp"
+    />
   </head>
 
   <body>

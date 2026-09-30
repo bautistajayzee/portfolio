@@ -106,18 +106,37 @@ function onPointerLeave() {
       @pointercancel="onPointerLeave"
     >
       <div class="aspect-square w-full overflow-hidden border border-line bg-n-100">
-        <img
-          v-if="photoOk"
-          :src="profile.photo"
-          :alt="`${profile.fullName}, ${profile.role}`"
-          class="h-full w-full object-cover"
-          width="400"
-          height="400"
-          :loading="props.priority ? 'eager' : 'lazy'"
-          :fetchpriority="props.priority ? 'high' : 'auto'"
-          decoding="async"
-          @error="photoOk = false"
-        />
+        <picture v-if="photoOk">
+          <!--
+            Two sources rather than one. The photograph renders at 318px on a
+            desktop, so the 850px file is carrying roughly 2.7x more pixels than
+            that slot can show, and on a phone the slot is smaller still. The
+            600px source is 43 KB against 99 KB and is what a small screen gets.
+
+            The media query is a width, not a device width, so this follows the
+            layout rather than the hardware: a narrow window on a large laptop
+            gets the smaller file, which is the right answer for what is
+            actually being drawn.
+
+            `v-if` sits on the <picture>, not on the <img>. Vue requires a
+            v-if and its v-else to be adjacent siblings, and a <picture> between
+            them is enough to break that. It surfaces as a build error rather
+            than a runtime one, so it could not have been caught in the browser.
+          -->
+          <source media="(max-width: 640px)" srcset="/photo-600.webp" type="image/webp" />
+          <source srcset="/photo.webp" type="image/webp" />
+          <img
+            :src="profile.photo"
+            :alt="`${profile.fullName}, ${profile.role}`"
+            class="h-full w-full object-cover"
+            width="400"
+            height="400"
+            :loading="props.priority ? 'eager' : 'lazy'"
+            :fetchpriority="props.priority ? 'high' : 'auto'"
+            decoding="async"
+            @error="photoOk = false"
+          />
+        </picture>
         <span
           v-else
           class="flex h-full w-full select-none items-center justify-center font-serif text-[3rem] italic text-n-300"
