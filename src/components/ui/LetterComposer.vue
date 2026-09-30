@@ -251,15 +251,20 @@ onBeforeUnmount(() => window.clearTimeout(copyTimer))
           is a trap: ARIA says a button must activate on Space, an anchor does
           not, so a `role="button"` link silently stops responding to half of
           what a keyboard expects and needs a keydown handler bolted on to fix.
-          As plain links both Enter and Space work natively, and an anchor with
-          no `href` is not focusable at all — which is exactly the disabled
-          state, without `aria-disabled` or a swallowed click.
+
+          The disabled state renders a `<span>` rather than an anchor with the
+          `href` pulled. That was the original approach here and Lighthouse
+          flagged it as a non-crawlable link — correctly, since `<a>` with no
+          `href` is a link to nowhere as far as a crawler is concerned, and this
+          site is one page of links. A span cannot be focused and cannot be
+          activated, which is the whole point of the disabled state, so it
+          describes itself with `aria-disabled` and there is no crawlable
+          violation to suppress.
         -->
         <a
-          :href="canSend ? mailtoHref : undefined"
+          v-if="canSend"
+          :href="mailtoHref"
           class="rounded-[10px] bg-accent px-5 py-2.5 text-[0.8125rem] font-medium tracking-[0.01em] text-paper transition-opacity duration-200"
-          :class="canSend ? '' : 'pointer-events-none opacity-35'"
-          :aria-disabled="canSend ? undefined : 'true'"
         >
           Send letter
           <!--
@@ -282,6 +287,25 @@ onBeforeUnmount(() => window.clearTimeout(copyTimer))
             <path d="M2.5 8H13M9 4L13 8L9 12" />
           </svg>
         </a>
+        <span
+          v-else
+          aria-disabled="true"
+          class="pointer-events-none rounded-[10px] bg-accent px-5 py-2.5 text-[0.8125rem] font-medium tracking-[0.01em] text-paper opacity-35"
+        >
+          Send letter
+          <svg
+            viewBox="0 0 16 16"
+            class="ml-1.5 inline-block h-3 w-3 align-[-0.05em]"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M2.5 8H13M9 4L13 8L9 12" />
+          </svg>
+        </span>
 
         <!--
           Outlined, not filled. Only one accent-filled control on the page — the
@@ -289,20 +313,26 @@ onBeforeUnmount(() => window.clearTimeout(copyTimer))
           it does not get to look like the main one too.
         -->
         <a
-          :href="canSend ? gmailHref : undefined"
+          v-if="canSend"
+          :href="gmailHref"
           target="_blank"
           rel="noopener noreferrer"
           class="rounded-[10px] border border-line px-5 py-2.5 text-[0.8125rem] leading-none font-medium tracking-[0.01em] text-n-600 transition-colors duration-200 hover:border-ink hover:text-ink"
-          :class="canSend ? '' : 'pointer-events-none opacity-35'"
-          :aria-disabled="canSend ? undefined : 'true'"
         >
           Open in Gmail
         </a>
+        <span
+          v-else
+          aria-disabled="true"
+          class="pointer-events-none rounded-[10px] border border-line px-5 py-2.5 text-[0.8125rem] leading-none font-medium tracking-[0.01em] text-n-600 opacity-35"
+        >
+          Open in Gmail
+        </span>
 
         <button
           type="button"
           class="meta ml-auto py-2 text-n-500 transition-colors duration-200 hover:text-ink"
-          :aria-label="`Copy ${profile.email} to clipboard`"
+          :aria-label="copied ? 'Copied — address copied to clipboard' : `Copy address — ${profile.email} to clipboard`"
           @click="copyAddress"
         >
           <!--
