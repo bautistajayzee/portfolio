@@ -105,6 +105,35 @@ chat.forEach((q, i) => {
 const hasTimeQuestion = chat.some((q) => typeof q.answer === 'function')
 if (!hasTimeQuestion) warn('no dynamic (function) chat answer — the clock question may have gone missing')
 
+/*
+ * A length budget on the answers.
+ *
+ * These are read one bubble at a time in a 352px panel, and the answer is typed
+ * out character by character. Three of them had drifted to 534-640 characters
+ * while the rest sat at 241-340, and the drift had a mechanical consequence
+ * rather than only an editorial one: the reveal is capped at 2 seconds, so
+ * anything long enough to hit the cap arrives at the same rate as anything else
+ * that does — at roughly 320 characters per second a reader is not reading, they
+ * are watching a wall. The extra length bought no extra understanding, because
+ * the same detail sits one screen away in the section the question is about.
+ *
+ * 360 is a warning rather than a failure. The clock answer is computed at ask
+ * time and lands around 340, so a hard limit would either fail on it or have to
+ * exempt it, and an exemption is a hole.
+ */
+const ANSWER_BUDGET = 360
+const overBudget = chat
+  .map((q) => ({ chip: q.chip, chars: String(typeof q.answer === 'function' ? q.answer() : q.answer).length }))
+  .filter((x) => x.chars > ANSWER_BUDGET)
+  .sort((a, b) => b.chars - a.chars)
+if (overBudget.length) {
+  warn(
+    `chat answers over ${ANSWER_BUDGET} characters: ${overBudget
+      .map((x) => `"${x.chip}" ${x.chars}`)
+      .join(', ')}`,
+  )
+}
+
 // --- stray content --------------------------------------------------------
 // Scoped to `experience`, not the whole document: `2018` is a legitimate
 // education date and flagging it globally produced a false positive.

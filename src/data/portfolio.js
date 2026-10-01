@@ -480,13 +480,13 @@ export const chat = [
     id: 'skills',
     chip: 'My Skills',
     answer:
-      "Six things I trained on: graphic design, video editing, computer literacy, active listening, and the hardware basics — PC assembly, and disassembly and troubleshooting. The design and video side came from four years of freelance client work, and it still runs — the Figma work on Komiks and GoPeso is the same instinct turned on interfaces. The hardware is practical, not professional: enough to build a machine and take it apart to find what is wrong, not a repair bench. I've since been building full-stack web systems on top of them: plain PHP and MySQL for the enrollment and point-of-sale work, and Laravel for the learning platform.",
+      "Six things: graphic design, video editing, computer literacy, active listening, PC assembly, and troubleshooting. The design and video side came from four years of freelance work. The hardware is practical rather than professional. I've since built full-stack systems on top — PHP and MySQL, and Laravel.",
   },
   {
     id: 'stack',
     chip: 'Tech Stack',
     answer:
-      "Mostly PHP and JavaScript. On the front end that means Vue and Tailwind, with GSAP for scroll-linked motion. On the back end it's plain PHP and MySQL for the enrollment and point-of-sale work, and Laravel for the learning platform. For design it's Figma, alongside Photoshop, Illustrator and Canva. I work in VS Code with Git and GitHub, host on Vercel and InfinityFree behind Cloudflare, and I've been building with AI tools throughout — ChatGPT, Claude, Gemini, GitHub Copilot, Cursor, Cline, OpenCode, OpenRouter and Antigravity.",
+      "Mostly PHP and JavaScript. The front end is Vue and Tailwind, with GSAP for scroll-linked motion. The back end is PHP and MySQL, plus Laravel. Design is Figma, with Photoshop and Illustrator alongside it. I work in VS Code with Git and GitHub, host on Vercel behind Cloudflare, and use AI tools throughout — mostly ChatGPT and Claude.",
   },
   {
     id: 'experience',
@@ -498,7 +498,7 @@ export const chat = [
     id: 'projects',
     chip: 'My Projects',
     answer:
-      'Six so far. This portfolio — the page you are reading — is Vue and Tailwind CSS, with GSAP for the scroll-linked motion and the smooth scrolling written by hand. Vegan Brew is a point-of-sale system for a vegan coffee shop, in plain PHP and MySQL. The SHS Enrollment System carries applicants through review, assessment, and fee collection for a private high school, and IT Learning Hub is a Laravel platform with lessons, quizzes, and certificates. The other two are UI/UX design rather than code: Komiks, an online comic store, and GoPeso, an online banking mobile app. Both Figma files are public, so you can open them.',
+      'Six so far. This portfolio is Vue and Tailwind. Vegan Brew is a point-of-sale system in PHP and MySQL, and the SHS Enrollment System carries applicants through to fees. IT Learning Hub is a Laravel platform with lessons and quizzes. Komiks and GoPeso are UI/UX design rather than code — both Figma files are public, so you can open them.',
   },
   {
     id: 'contact',
