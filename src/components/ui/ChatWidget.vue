@@ -488,210 +488,278 @@ onBeforeUnmount(() => {
     class="pointer-events-none fixed z-40 bottom-[max(0.75rem,env(safe-area-inset-bottom))] right-[max(0.75rem,env(safe-area-inset-right))] lg:bottom-6 lg:right-6"
   >
     <Transition name="chat-panel">
+      <!--
+        The phone.
+
+        A bezel, a screen, and then the panel that was already here, unchanged:
+        same header, same log, same chips, same minimise, same wheel
+        containment, same Escape, same focus. The mockup is a wrapper, not a
+        rewrite, because every one of those behaviours is load-bearing and had
+        already been reasoned about.
+
+        The bezel is `bg-n-900` rather than black so it tracks the theme - on the
+        light theme a true black frame reads as a hole punched in the page. The
+        screen keeps `bg-paper`, which is what makes the content inside it look
+        like a display rather than a card.
+
+        Sizing is the load-bearing part. `21rem` wide is the panel's old width
+        and the bezel costs 10px, so the screen is a shade narrower - it has to
+        be, or the frame would push the panel out past the viewport on a 360px
+        device. The height is capped against `100dvh` for the same reason the
+        menu is: the layout viewport is taller than the screen on a phone, and a
+        panel sized to it puts the question row below the fold.
+
+        `aria-hidden` on the bezel and the status bar. The status bar shows a
+        clock that is already in the panel header three lines below it, and
+        `aria-hidden` stops a screen reader announcing the same time twice.
+      -->
       <div
         v-if="open"
         ref="panelEl"
         role="dialog"
         aria-label="Ask about Jayzee"
-        class="chat-panel pointer-events-auto mb-3 flex w-[min(21rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[12px] border border-line bg-paper shadow-[0_18px_44px_-26px_rgba(10,10,10,0.4)]"
+        class="chat-panel pointer-events-auto mb-3 w-[min(21.5rem,calc(100vw-1.25rem))] max-w-full rounded-[2.25rem] bg-n-900 p-[5px] shadow-[0_18px_44px_-26px_rgba(10,10,10,0.5)]"
       >
-        <!-- header -->
-        <header class="flex items-center gap-3 border-b border-line px-4 py-3">
-          <ChatAvatar size="md" />
+        <div class="relative flex max-h-[min(40rem,calc(100dvh-5.5rem))] flex-col overflow-hidden rounded-[1.85rem] bg-paper">
+          <!-- Dynamic Island -->
+          <div class="absolute left-1/2 top-[7px] z-10 h-[1.4rem] w-[4.5rem] -translate-x-1/2 rounded-full bg-n-950" aria-hidden="true"></div>
 
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-[0.8125rem] font-medium leading-tight tracking-[-0.01em]">
-              {{ profile.fullName }}
-            </p>
-            <p class="mt-0.5 flex items-center gap-1.5 text-[0.6875rem] leading-tight text-n-500">
-              <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-[#22c55e]" aria-hidden="true"></span>
-              Online
-              <!--
-                Labelled with the timezone rather than left bare. An unlabelled
-                clock on a portfolio is ambiguous: a visitor in another country
-                cannot tell whether they are looking at their own time or his.
-              -->
-              <span class="text-n-300" aria-hidden="true">·</span>
-              <span class="tabular-nums">{{ time }}</span>
-              <span class="text-n-400">{{ zone }}</span>
-            </p>
-          </div>
-
-          <button
-            ref="minimiseEl"
-            type="button"
-            class="-mr-1 p-1 text-n-400 hover:text-ink"
-            :aria-label="minimised ? 'Expand conversation' : 'Minimise'"
-            :aria-expanded="!minimised"
-            @click="toggleMinimised"
+          <!--
+            Status bar. Signal, wifi and battery are drawn as shapes rather than
+            characters: an emoji or a glyph from a symbol font renders at a
+            different weight on every platform, and this is a decorative frame
+            around a real interface, not an operating system.
+          -->
+          <div
+            class="flex shrink-0 items-center justify-between px-6 pb-1 pt-2 text-n-700"
+            aria-hidden="true"
           >
-            <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4" aria-hidden="true">
-              <path
-                :d="minimised ? 'M12 5v14M5 12h14' : 'M5 12h14'"
-                stroke="currentColor"
-                stroke-width="1.6"
-                stroke-linecap="round"
-              />
-            </svg>
-          </button>
-        </header>
+            <span class="text-[0.6875rem] font-medium tabular-nums leading-none">{{ time }}</span>
+            <span class="flex items-center gap-1">
+              <svg viewBox="0 0 18 12" class="h-[9px] w-[13px]" fill="currentColor">
+                <rect x="0" y="8" width="3" height="4" rx="1" opacity="0.9" />
+                <rect x="5" y="5.5" width="3" height="6.5" rx="1" opacity="0.9" />
+                <rect x="10" y="3" width="3" height="9" rx="1" opacity="0.9" />
+                <rect x="15" y="0.5" width="3" height="11.5" rx="1" opacity="0.35" />
+              </svg>
+              <svg viewBox="0 0 16 12" class="h-[9px] w-[12px]" fill="currentColor">
+                <path d="M8 10.6 5.9 8.4a3 3 0 0 1 4.2 0L8 10.6Z" />
+                <path d="M8 6.2c1.5 0 2.9.6 3.9 1.6l1.3-1.4A7 7 0 0 0 8 4.3a7 7 0 0 0-5.2 2.1l1.3 1.4A5.2 5.2 0 0 1 8 6.2Z" opacity="0.85" />
+                <path d="M8 2.2c2.6 0 5 1 6.8 2.7l1.2-1.3A11 11 0 0 0 8 .2 11 11 0 0 0 0 3.6l1.2 1.3A9.9 9.9 0 0 1 8 2.2Z" opacity="0.6" />
+              </svg>
+              <svg viewBox="0 0 26 12" class="h-[9px] w-[19px]" fill="none">
+                <rect x="0.7" y="0.7" width="21" height="10.6" rx="3" stroke="currentColor" stroke-width="1.1" opacity="0.45" />
+                <rect x="2.4" y="2.4" width="14" height="7.2" rx="1.6" fill="currentColor" />
+                <path d="M23.4 4.2v3.6a2 2 0 0 0 0-3.6Z" fill="currentColor" opacity="0.45" />
+              </svg>
+            </span>
+          </div>
 
-        <!--
-          The conversation collapses on minimise rather than unmounting.
+          <!-- header -->
+          <header class="flex items-center gap-3 border-b border-line px-4 py-3">
+            <ChatAvatar size="md" />
 
-          A single `1fr → 0fr` grid row animates to the content's own height,
-          so there is no hardcoded pixel maximum here to fall out of step with
-          the copy. It also keeps the chips mounted, so expanding does not
-          rebuild the list — which would otherwise drop keyboard focus.
-        -->
-        <div class="chat-body" :class="{ 'chat-body--closed': minimised }">
-          <div class="chat-body__inner" :inert="minimised || undefined">
-            <!--
-              The scroller is a plain div, deliberately, and the TransitionGroup
-              sits inside it as nothing but layout.
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-[0.8125rem] font-medium leading-tight tracking-[-0.01em]">
+                {{ profile.fullName }}
+              </p>
+              <p class="mt-0.5 flex items-center gap-1.5 text-[0.6875rem] leading-tight text-n-500">
+                <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-[#22c55e]" aria-hidden="true"></span>
+                Online
+                <!--
+                  Labelled with the timezone rather than left bare. An unlabelled
+                  clock on a portfolio is ambiguous: a visitor in another country
+                  cannot tell whether they are looking at their own time or his.
+                -->
+                <span class="text-n-300" aria-hidden="true">·</span>
+                <span class="tabular-nums">{{ time }}</span>
+                <span class="text-n-400">{{ zone }}</span>
+              </p>
+            </div>
 
-              It used to be the other way round, with `ref="logEl"` on the
-              TransitionGroup — and a template ref on a component resolves to the
-              *component instance*, not to its root element. So `scrollTop` was
-              being assigned to a proxy object and the log never moved: it sat at
-              scrollTop 0 with 598px of content below the fold, with nothing in
-              the console to show for it. The scroll container has to be a real
-              element for a ref to reach it.
-            -->
-            <div
-              ref="logEl"
-              class="max-h-[min(19rem,52vh)] overflow-y-auto overscroll-contain px-4 py-4"
+            <button
+              ref="minimiseEl"
+              type="button"
+              class="-mr-1 p-1 text-n-400 hover:text-ink"
+              :aria-label="minimised ? 'Expand conversation' : 'Minimise'"
+              :aria-expanded="!minimised"
+              @click="toggleMinimised"
             >
-              <TransitionGroup tag="div" name="chat-msg" class="flex flex-col gap-4">
-              <!-- greeting -->
-              <div key="greeting" class="flex items-start gap-2.5">
-                <ChatAvatar class="mt-1.5" />
-                <p :class="BOT_BUBBLE">
-                  Hi — I'm {{ profile.firstName }}. Pick a question and I'll answer it.
-                </p>
-              </div>
+              <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4" aria-hidden="true">
+                <path
+                  :d="minimised ? 'M12 5v14M5 12h14' : 'M5 12h14'"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          </header>
 
+          <!--
+            The conversation collapses on minimise rather than unmounting.
+
+            A single `1fr → 0fr` grid row animates to the content's own height,
+            so there is no hardcoded pixel maximum here to fall out of step with
+            the copy. It also keeps the chips mounted, so expanding does not
+            rebuild the list — which would otherwise drop keyboard focus.
+          -->
+          <div class="chat-body" :class="{ 'chat-body--closed': minimised }">
+            <div class="chat-body__inner" :inert="minimised || undefined">
+              <!--
+                The scroller is a plain div, deliberately, and the TransitionGroup
+                sits inside it as nothing but layout.
+
+                It used to be the other way round, with `ref="logEl"` on the
+                TransitionGroup — and a template ref on a component resolves to the
+                *component instance*, not to its root element. So `scrollTop` was
+                being assigned to a proxy object and the log never moved: it sat at
+                scrollTop 0 with 598px of content below the fold, with nothing in
+                the console to show for it. The scroll container has to be a real
+                element for a ref to reach it.
+              -->
               <div
-                v-for="message in messages"
-                :key="message.id"
-                class="flex"
-                :class="message.from === 'me' ? 'justify-end' : 'items-start gap-2.5'"
+                ref="logEl"
+                class="max-h-[min(19rem,52vh)] overflow-y-auto overscroll-contain px-4 py-4"
               >
-                <!-- bot -->
-                <template v-if="message.from === 'bot'">
+                <TransitionGroup tag="div" name="chat-msg" class="flex flex-col gap-4">
+                <!-- greeting -->
+                <div key="greeting" class="flex items-start gap-2.5">
                   <ChatAvatar class="mt-1.5" />
-                  <!--
-                    No whitespace between the text and the caret: a template
-                    newline here would render as a space and put a gap in the
-                    middle of the word being typed.
-                  -->
                   <p :class="BOT_BUBBLE">
-                    {{ message.text }}<span
-                      v-if="message.id === streamingId"
-                      class="chat-caret"
-                      aria-hidden="true"
-                    ></span>
+                    Hi — I'm {{ profile.firstName }}. Pick a question and I'll answer it.
                   </p>
-                </template>
+                </div>
 
-                <!-- the question, echoed back -->
-                <p
-                  v-else
-                  class="max-w-[16rem] rounded-[10px] bg-n-100 px-3 py-2 text-[0.8125rem] leading-[1.55] text-n-800"
+                <div
+                  v-for="message in messages"
+                  :key="message.id"
+                  class="flex"
+                  :class="message.from === 'me' ? 'justify-end' : 'items-start gap-2.5'"
                 >
-                  {{ message.text }}
-                </p>
+                  <!-- bot -->
+                  <template v-if="message.from === 'bot'">
+                    <ChatAvatar class="mt-1.5" />
+                    <!--
+                      No whitespace between the text and the caret: a template
+                      newline here would render as a space and put a gap in the
+                      middle of the word being typed.
+                    -->
+                    <p :class="BOT_BUBBLE">
+                      {{ message.text }}<span
+                        v-if="message.id === streamingId"
+                        class="chat-caret"
+                        aria-hidden="true"
+                      ></span>
+                    </p>
+                  </template>
+
+                  <!-- the question, echoed back -->
+                  <p
+                    v-else
+                    class="max-w-[16rem] rounded-[10px] bg-n-100 px-3 py-2 text-[0.8125rem] leading-[1.55] text-n-800"
+                  >
+                    {{ message.text }}
+                  </p>
+                </div>
+
+                <!--
+                  Typing indicator, in the same bubble the answer will land in.
+
+                  Same `BOT_BUBBLE`, same alignment, same avatar offset — so the
+                  dots visibly *become* the reply rather than one block being
+                  swapped for another. The dots keep their own tight padding because
+                  they need to sit on the text baseline, not be centred in it.
+                -->
+                <div v-if="typing" key="typing" class="flex items-start gap-2.5">
+                  <ChatAvatar class="mt-1.5" />
+                  <p :class="[BOT_BUBBLE, 'flex items-center']">
+                    <span class="flex items-center gap-1" aria-label="Jayzee is typing">
+                      <span class="dot h-1 w-1 rounded-full bg-n-400"></span>
+                      <span class="dot h-1 w-1 rounded-full bg-n-400"></span>
+                      <span class="dot h-1 w-1 rounded-full bg-n-400"></span>
+                    </span>
+                  </p>
+                </div>
+                </TransitionGroup>
               </div>
 
               <!--
-                Typing indicator, in the same bubble the answer will land in.
+                Question chips — this replaces a text input entirely.
 
-                Same `BOT_BUBBLE`, same alignment, same avatar offset — so the
-                dots visibly *become* the reply rather than one block being
-                swapped for another. The dots keep their own tight padding because
-                they need to sit on the text baseline, not be centred in it.
+                A single horizontal row that swipes, not a vertical stack. Seven
+                full-width rows made the panel 300px taller than the conversation
+                in it, which is the wrong balance: the chips are a launcher, not
+                the content, and they were pushing the actual messages off screen.
+
+                Three details that make a horizontal scroller feel intentional
+                rather than broken:
+
+                · The scroll area stays inside the panel's padding. It originally
+                  bled with `-mx-4 px-4` so a chip could slide under the rounded
+                  corner — except the panel is `overflow-hidden` for those corners,
+                  so 15px of the first chip was clipped off and hit-testing over it
+                  returned the panel. The bleed bought a peek and cost a chip.
+                · The scrollbar is hidden. A visible 8px bar under a row of bordered
+                  chips looks like a bug, and on a touch device it is a scroll
+                  target nobody aims for.
+                · `overscroll-behavior-x: contain` stops a horizontal flick from
+                  being handed to the message log above it.
+
+                Two ways in, because neither one covers the other. The wheel is
+                translated onto the horizontal axis while the cursor is over the
+                row, and the row also drags with the pointer. Keyboard users are not
+                stranded either: the chips are buttons, so arrowing along them
+                scrolls them into view, and the first one receives focus when the
+                panel opens.
               -->
-              <div v-if="typing" key="typing" class="flex items-start gap-2.5">
-                <ChatAvatar class="mt-1.5" />
-                <p :class="[BOT_BUBBLE, 'flex items-center']">
-                  <span class="flex items-center gap-1" aria-label="Jayzee is typing">
-                    <span class="dot h-1 w-1 rounded-full bg-n-400"></span>
-                    <span class="dot h-1 w-1 rounded-full bg-n-400"></span>
-                    <span class="dot h-1 w-1 rounded-full bg-n-400"></span>
-                  </span>
-                </p>
-              </div>
-              </TransitionGroup>
-            </div>
-
-            <!--
-              Question chips — this replaces a text input entirely.
-
-              A single horizontal row that swipes, not a vertical stack. Seven
-              full-width rows made the panel 300px taller than the conversation
-              in it, which is the wrong balance: the chips are a launcher, not
-              the content, and they were pushing the actual messages off screen.
-
-              Three details that make a horizontal scroller feel intentional
-              rather than broken:
-
-              · The scroll area stays inside the panel's padding. It originally
-                bled with `-mx-4 px-4` so a chip could slide under the rounded
-                corner — except the panel is `overflow-hidden` for those corners,
-                so 15px of the first chip was clipped off and hit-testing over it
-                returned the panel. The bleed bought a peek and cost a chip.
-              · The scrollbar is hidden. A visible 8px bar under a row of bordered
-                chips looks like a bug, and on a touch device it is a scroll
-                target nobody aims for.
-              · `overscroll-behavior-x: contain` stops a horizontal flick from
-                being handed to the message log above it.
-
-              Two ways in, because neither one covers the other. The wheel is
-              translated onto the horizontal axis while the cursor is over the
-              row, and the row also drags with the pointer. Keyboard users are not
-              stranded either: the chips are buttons, so arrowing along them
-              scrolls them into view, and the first one receives focus when the
-              panel opens.
-            -->
-            <div class="border-t border-line pb-3.5 pt-3.5">
-              <p class="meta mb-2.5 px-4 text-n-400">Ask me</p>
-              <div
-                ref="chipRow"
-                class="chips-scroll flex gap-2 overflow-x-auto px-4"
-                @pointerdown="onChipPointerDown"
-                @pointermove="onChipPointerMove"
-                @pointerup="onChipPointerUp"
-                @pointercancel="onChipPointerUp"
-                @click.capture="onChipRowClick"
-              >
-                <button
-                  v-for="(question, i) in chat"
-                  :key="question.id"
-                  :ref="i === 0 ? (el) => (firstChipEl = el) : undefined"
-                  type="button"
-                  class="group flex shrink-0 items-center gap-2 whitespace-nowrap border border-line px-3 py-2.5 text-left text-[0.8125rem] leading-tight text-n-600 transition-colors hover:border-n-400 hover:text-ink disabled:opacity-40"
-                  :disabled="typing || streaming"
-                  @click="ask(question)"
+              <div class="border-t border-line pb-3.5 pt-3.5">
+                <p class="meta mb-2.5 px-4 text-n-400">Ask me</p>
+                <div
+                  ref="chipRow"
+                  class="chips-scroll flex gap-2 overflow-x-auto px-4"
+                  @pointerdown="onChipPointerDown"
+                  @pointermove="onChipPointerMove"
+                  @pointerup="onChipPointerUp"
+                  @pointercancel="onChipPointerUp"
+                  @click.capture="onChipRowClick"
                 >
-                  <span>{{ question.chip }}</span>
-                  <svg
-                    viewBox="0 0 16 16"
-                    class="h-3.5 w-3.5 shrink-0 text-n-300 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-n-500"
-                    fill="none"
-                    aria-hidden="true"
+                  <button
+                    v-for="(question, i) in chat"
+                    :key="question.id"
+                    :ref="i === 0 ? (el) => (firstChipEl = el) : undefined"
+                    type="button"
+                    class="group flex shrink-0 items-center gap-2 whitespace-nowrap border border-line px-3 py-2.5 text-left text-[0.8125rem] leading-tight text-n-600 transition-colors hover:border-n-400 hover:text-ink disabled:opacity-40"
+                    :disabled="typing || streaming"
+                    @click="ask(question)"
                   >
-                    <path
-                      d="M2.5 8H13M9 4L13 8L9 12"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </button>
+                    <span>{{ question.chip }}</span>
+                    <svg
+                      viewBox="0 0 16 16"
+                      class="h-3.5 w-3.5 shrink-0 text-n-300 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-n-500"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M2.5 8H13M9 4L13 8L9 12"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
+
+          <!--
+            Home indicator. Overlaid rather than given its own row: it is a
+            frame detail, and padding the chip row out to clear it would move
+            the control the panel exists to offer.
+          -->
+          <div class="absolute bottom-[7px] left-1/2 z-10 h-[4px] w-[7rem] -translate-x-1/2 rounded-full bg-n-950/80" aria-hidden="true"></div>
         </div>
       </div>
     </Transition>

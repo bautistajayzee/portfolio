@@ -121,17 +121,22 @@
   --c-accent: #116e4d;
 
   /*
-    The page grid.
+    The dot field. Two values because a dot and a line of the same colour do not
+    read at the same weight — a 2px dot covers a quarter of the area a 1px line
+    does at the same alpha, so equal-alpha dots look weaker than equal-alpha
+    lines. Both are stepped up to compensate, and the dark ground swallows more
+    of it again.
 
     Written as plain rgba rather than `color-mix()` against `--c-ink`, which is
     the tidier-looking way to say "this colour, but very faint" and is what this
     started as. Tailwind wraps `color-mix` in an `@supports` query and supplies
     a fallback for engines without it, and that fallback was the full ink
-    colour - not a tint of it - so those browsers would have drawn hard 1px black
-    lines every 72px instead of a faint grid. Two hand-kept numbers are a better
-    trade than a correct rule with an incorrect fallback.
+    colour - not a tint of it - so those browsers would have drawn hard dots
+    instead of a faint field. Two hand-kept numbers are a better trade than a
+    correct rule with an incorrect fallback.
   */
-  --c-grid: rgb(10 10 10 / 5%);
+  --c-grid: rgb(10 10 10 / 8%);
+  --c-grid-major: rgb(10 10 10 / 15%);
 }
 
 html.dark {
@@ -141,9 +146,9 @@ html.dark {
   --c-ink: #f2f3f5;
   --c-line: #26282d;
 
-  /* See the note in `:root`. A touch stronger than the light value because the
-     dark ground swallows more of it at the same alpha. */
-  --c-grid: rgb(242 243 245 / 9%);
+  /* See the note in `:root`. */
+  --c-grid: rgb(242 243 245 / 15%);
+  --c-grid-major: rgb(242 243 245 / 26%);
 
   --c-n-50: #131316;
   --c-n-100: #1a1b1f;
@@ -188,6 +193,7 @@ html.dark {
 
   --color-accent: var(--c-accent);
     --color-grid: var(--c-grid);
+    --color-grid-major: var(--c-grid-major);
 
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-serif: 'Instrument Serif', ui-serif, Georgia, 'Times New Roman', serif;
@@ -210,7 +216,7 @@ html.dark {
     background-color: var(--color-paper);
 
     /*
-      The grid the whole page sits on.
+      The dot field the whole page sits on.
 
       Painted on the root element rather than on a fixed pseudo-layer, and that
       is the load-bearing choice. A root background propagates to the canvas, so
@@ -219,26 +225,29 @@ html.dark {
       the usual way a "subtle background texture" quietly costs ten points of
       scrolling performance on a phone.
 
-      Two gradients, not a repeating background image: no extra request, no
-      decode, and the lines stay hairline at any zoom because the browser paints
-      them as vectors rather than scaling pixels.
+      A `radial-gradient` rather than a tiled image or an SVG data URI: no
+      request, no decode, and the dots stay round at any zoom and any DPR,
+      because they are painted as vectors rather than scaled pixels. The radius
+      is a whole 1px so the dot lands on exact pixel boundaries — a fractional
+      radius rasterises to a blurred smudge on some engines, which is the one
+      thing a dot field must not look like.
 
-      The second pair is a coarser division at the same alpha. One grid alone
-      reads as graph paper and flattens the page; a major line every four cells
-      gives the eye a rhythm to measure the column rhythm against, which is the
-      whole point of putting a grid behind editorial type.
+      `at 1px 1px` rather than the default `center`, because centring a 1px
+      radius in a 26px tile puts the dot's centre at 13px, and 13px is a half
+      pixel: the dot straddles two device pixels and anti-aliases to half
+      strength. Anchoring it to the tile corner keeps every dot on the same
+      subpixel phase, so the field is evenly weighted instead of shimmering.
+
+      Two tiers, one gradient each. The coarser dot is not decoration: it is what
+      stops a uniform field from reading as noise, because it gives the eye
+      something to count. A single tier of dots looks like dust on the lens.
     */
     background-image:
-      linear-gradient(to right, var(--color-grid) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px),
-      linear-gradient(to right, var(--color-grid) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px);
+      radial-gradient(circle 1px at 1px 1px, var(--color-grid) 1px, transparent 1px),
+      radial-gradient(circle 1.5px at 1px 1px, var(--color-grid-major) 1.5px, transparent 1px);
     background-size:
-      4.5rem 4.5rem,
-      4.5rem 4.5rem,
-      18rem 18rem,
-      18rem 18rem;
-    background-position: center top;
+      26px 26px,
+      130px 130px;
 
     -webkit-text-size-adjust: 100%;
   }
