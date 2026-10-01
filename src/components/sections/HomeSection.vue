@@ -149,20 +149,41 @@ onBeforeUnmount(() => {
           </p>
 
           <!-- short names and slashes, set in the site's mono -->
-          <nav v-reveal="280" aria-label="Contact and profiles" class="mt-10">
+          <nav v-reveal="280" aria-label="Profiles" class="mt-10">
             <ul class="flex flex-wrap items-baseline gap-x-3 gap-y-2">
               <li
                 v-for="(item, i) in social"
                 :key="item.label"
                 class="flex items-baseline gap-x-3"
               >
+                <!--
+                  `group` on the link so the arrow can nudge on hover, exactly as
+                  the project rows do. The glyph is the same 16px diagonal from
+                  `ProjectRow.vue` - the point of the arrow is that it means the
+                  same thing everywhere on the site, so it should be drawn once
+                  and copied, not re-drawn.
+                -->
                 <a
                   :href="item.href"
-                  class="meta py-2 text-n-500 transition-colors duration-200 hover:text-ink"
+                  class="meta group inline-flex items-center gap-2 py-2 text-n-500 transition-colors duration-200 hover:text-ink"
                   :target="item.href.startsWith('http') ? '_blank' : undefined"
                   :rel="item.href.startsWith('http') ? 'noopener noreferrer' : undefined"
                 >
                   {{ item.label }}
+                  <svg
+                    viewBox="0 0 16 16"
+                    class="h-4 w-4 text-n-300 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M5 11L11 5M11 5H6M11 5V10"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
                 </a>
                 <span
                   v-if="i < social.length - 1"

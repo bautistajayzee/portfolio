@@ -45,7 +45,7 @@ src/
     useViewers.js          presence count, polls the function
     useTheme.js            system / light / dark
   components/
-    layout/                SideNav, MobileNav, PageFooter
+    layout/                SideNav, ContactRail, MobileNav, PageFooter
     sections/              one per section, plus ProjectRow
     ui/                    SectionHead, TypeTitle, SplitName, ProfileImage,
                            ThemeSwitch, ChatWidget, ChatAvatar, LetterComposer,
@@ -57,7 +57,9 @@ netlify.toml                   the same headers, for a future Netlify deploy
 scripts/audit-data.mjs         content consistency check
 scripts/audit-headers.mjs      what vercel.json actually sends, per path
 scripts/audit-viewers.mjs      drives the presence function against a Redis shim
-public/                        favicon, profile photo, resume PDF, 3 screenshots
+scripts/make-icons.mjs         favicon.svg -> the PNGs a phone home screen needs
+public/                        favicon, 3 PNG icons, og image, manifest,
+                               robots.txt, profile photo, resume, screenshots
 ```
 
 ---

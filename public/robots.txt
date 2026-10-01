@@ -1,0 +1,12 @@
+# Everything here is meant to be found. This is a portfolio; the whole point of
+# it is that a recruiter, a client, or an employer can reach the projects.
+#
+# This file exists because of a specific failure worth recording: without it,
+# `/robots.txt` is not a 404 - a static host's single-page fallback answers with
+# `index.html` instead. Lighthouse then reads `<!doctype html>` as robots.txt,
+# rejects every line as "syntax not understood", and drops SEO to 83 on a site
+# with nothing wrong with it. The audit was right about the response and wrong
+# about the cause, which is the most expensive kind of wrong.
+
+User-agent: *
+Allow: /

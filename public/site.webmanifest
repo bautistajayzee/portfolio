@@ -1,0 +1,14 @@
+{
+  "name": "Jayzee G. Bautista",
+  "short_name": "Jayzee Bautista",
+  "description": "IT student and aspiring IT professional working across programming, graphic design, and problem-solving. Based in Cavite, Philippines.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0b0d",
+  "theme_color": "#0b0b0d",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

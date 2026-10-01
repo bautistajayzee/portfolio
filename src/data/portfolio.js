@@ -52,22 +52,48 @@ export const sections = [
  * Only real, reachable destinations. The GitHub handle is the one on the LMS
  * repository's remote, not a guess; the Instagram and LinkedIn addresses were
  * given directly.
- * `contact` is an in-page anchor, so it goes through the same smooth-scroll
- * handler as the side rail. Email is not here, but it is still on the side
- * rail, in Contact and in the assistant, so nothing became unreachable by
- * dropping it.
  *
- * Single source of truth for both places it renders: the hero prints the whole
- * list, and Contact filters it down to the `http` entries so the `#contact`
- * anchor does not show up there as a link to itself. Add a profile here and it
- * appears in both. The assistant's answers are hand-written and are NOT derived
- * from this, so they have to be updated alongside it.
+ * `contact` used to be in this list, as an in-page anchor to the contact
+ * section. It is removed: the rail's footer now carries the email address and
+ * every profile, and `#contact` is one row away in the rail itself, so a second
+ * link to it from the hero was a shortcut to somewhere the reader already was.
+ *
+ * Single source of truth for everywhere it renders: the hero prints the whole
+ * list, the contact section filters to the `http` entries, and the rail pairs
+ * each with an icon. Add a profile here and it appears in all three.
+ */
+/**
+ * The external channels. One list, three renderers:
+ *
+ * · the hero's slash-separated row, which now prints only these
+ * · the contact section, filtered to `http` entries
+ * · the side rail, which pairs each with an icon and its short handle
+ *
+ * The in-page `#contact` entry used to sit in the middle of this list and was
+ * filtered out again by every consumer that did not want it. It is gone rather
+ * than filtered, because the rail now carries the email address outright, so
+ * there was nothing left for it to be a shortcut to.
+ *
+ * `short` is how the handle is written when it is labelled rather than spelled
+ * out - `@jayzbau`, not `instagram.com/jayzbau`. Only real, reachable
+ * destinations: the GitHub handle is the one on the repository remote, the
+ * Instagram and LinkedIn addresses were given directly.
+ *
+ * `icon` names a glyph in `ContactRail.vue`, not an imported asset. Keeping the
+ * paths in the component means this file stays content and stays serialisable.
+ *
+ * The assistant's answers are hand-written and are NOT derived from this, so a
+ * change here needs the matching edit in `chat` below.
  */
 export const social = [
-  { label: 'instagram', href: 'https://instagram.com/jayzbau' },
-  { label: 'contact', href: '#contact' },
-  { label: 'github', href: 'https://github.com/bautistajayzee' },
-  { label: 'linkedin', href: 'https://www.linkedin.com/in/jayzeegbautista/' },
+  { label: 'instagram', short: '@jayzbau', icon: 'instagram', href: 'https://instagram.com/jayzbau' },
+  { label: 'github', short: '@bautistajayzee', icon: 'github', href: 'https://github.com/bautistajayzee' },
+  {
+    label: 'linkedin',
+    short: 'in/jayzeegbautista',
+    icon: 'linkedin',
+    href: 'https://www.linkedin.com/in/jayzeegbautista/',
+  },
 ]
 
 export const about = {
@@ -81,7 +107,7 @@ export const about = {
   facts: [
     { label: 'Discipline', value: 'Information Technology' },
     { label: 'School', value: 'NCST — Dasmariñas' },
-    { label: 'Also does', value: 'Graphic design · Video' },
+    { label: 'Also does', value: 'Graphic design · Video editing' },
     { label: 'Seeking', value: 'Entry-level IT roles' },
   ],
 }
@@ -155,7 +181,11 @@ export const experience = [
       'Worked directly with clients on design and video, mostly for small businesses and student organisations.',
     points: [
       { label: 'Design', detail: 'Created graphic designs based on client requirements — layouts, posters, and brand assets.' },
-      { label: 'Video', detail: 'Edited videos following client requirements, from raw footage to a finished cut.' },
+      {
+        label: 'Video editing',
+        detail:
+          'Four years of client work, raw footage in and a finished cut out: trimming to pace, sequencing shots so the edit reads, then exporting a file that holds up on the client’s own playback and not just in the timeline.',
+      },
       { label: 'Working', detail: 'Communicated with clients by message and met deadlines without dropping the quality.' },
     ],
   },
@@ -220,10 +250,12 @@ export const experience = [
 export const techStack = [
   {
     label: 'Languages',
+    icon: 'code',
     items: ['JavaScript', 'PHP', 'Python', 'Java', 'SQL', 'HTML', 'CSS'],
   },
   {
     label: 'Frontend',
+    icon: 'window',
     items: [
       'Vue 3',
       'Tailwind CSS',
@@ -236,6 +268,7 @@ export const techStack = [
   },
   {
     label: 'Backend',
+    icon: 'server',
     items: [
       'PHP 8',
       'Laravel 13',
@@ -250,14 +283,17 @@ export const techStack = [
   },
   {
     label: 'Database',
+    icon: 'database',
     items: ['MySQL', 'MariaDB', 'MongoDB'],
   },
   {
     label: 'Design & Video',
+    icon: 'frame',
     items: ['Figma', 'Photoshop', 'Illustrator', 'Canva', 'Premiere Pro', 'After Effects'],
   },
   {
     label: 'Tools & Platforms',
+    icon: 'wrench',
     items: [
       'Git',
       'GitHub',
@@ -269,7 +305,7 @@ export const techStack = [
       'XAMPP',
       'Apache',
       'InfinityFree',
-      'Netlify',
+      'Vercel',
       'Cloudflare',
       'ngrok',
       'Namecheap',
@@ -277,6 +313,7 @@ export const techStack = [
   },
   {
     label: 'AI',
+    icon: 'spark',
     items: [
       'ChatGPT',
       'Claude',
@@ -298,7 +335,8 @@ export const skills = [
   },
   {
     name: 'Video Editing',
-    detail: 'Cutting for pace, tightening a story, and finishing a file that holds up when the client plays it back.',
+    detail:
+      'Four years of paid client work rather than a course. Cutting for pace, tightening a story, and finishing a file that holds up when the client plays it back — which is where most of the actual skill came from.',
   },
   {
     name: 'Computer Literacy',
@@ -435,7 +473,7 @@ export const chat = [
     id: 'stack',
     chip: 'Tech Stack',
     answer:
-      "Mostly PHP and JavaScript. On the front end that means Vue and Tailwind, with GSAP for scroll-linked motion. On the back end it's plain PHP and MySQL for the enrollment and point-of-sale work, and Laravel for the learning platform. For design it's Figma, alongside Photoshop, Illustrator and Canva. I work in VS Code with Git and GitHub, host on Netlify and InfinityFree behind Cloudflare, and I've been building with AI tools throughout — ChatGPT, Claude, Gemini, GitHub Copilot, Cursor, Cline, OpenCode, OpenRouter and Antigravity.",
+      "Mostly PHP and JavaScript. On the front end that means Vue and Tailwind, with GSAP for scroll-linked motion. On the back end it's plain PHP and MySQL for the enrollment and point-of-sale work, and Laravel for the learning platform. For design it's Figma, alongside Photoshop, Illustrator and Canva. I work in VS Code with Git and GitHub, host on Vercel and InfinityFree behind Cloudflare, and I've been building with AI tools throughout — ChatGPT, Claude, Gemini, GitHub Copilot, Cursor, Cline, OpenCode, OpenRouter and Antigravity.",
   },
   {
     id: 'experience',

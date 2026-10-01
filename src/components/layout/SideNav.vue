@@ -1,5 +1,6 @@
 <script setup>
 import ThemeSwitch from '../ui/ThemeSwitch.vue'
+import ContactRail from './ContactRail.vue'
 import { useClock } from '../../composables/useClock.js'
 import { useViewers } from '../../composables/useViewers.js'
 import { profile } from '../../data/portfolio.js'
@@ -27,10 +28,9 @@ const { time, date, zone } = useClock()
     aria-label="Sections"
   >
     <a href="#home" class="group w-fit leading-none">
-      <span class="block text-[0.9375rem] font-semibold tracking-[-0.02em] group-hover:text-n-500">
+      <span class="block text-[0.875rem] font-semibold tracking-[-0.015em] group-hover:text-n-500">
         {{ profile.firstName }} {{ profile.lastName }}
       </span>
-      <span class="meta mt-2 block text-n-400">Portfolio — 2026</span>
     </a>
 
     <ul class="mt-12 flex flex-1 flex-col gap-1">
@@ -92,41 +92,15 @@ const { time, date, zone } = useClock()
       <span><span class="font-medium tabular-nums text-n-600">{{ count }}</span> {{ label() }}</span>
     </p>
 
-    <div class="border-t border-line pt-5">
-      <div class="mb-4">
-        <ThemeSwitch />
-      </div>
-
-      <!--
-        The envelope labels the block rather than the address. Inside the link it
-        was competing with a `break-all` address that already wraps to two lines
-        in this column, and it read as part of the value instead of the caption.
-
-        `text-n-400` to match the label beside it — it was `n-300`, a step
-        lighter, so the glyph never looked like it belonged to the same line.
-        Both are theme tokens, so it tracks the switch with the rest of the rail
-        rather than being pinned to one grey.
-      -->
-      <div class="flex items-center gap-2">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          class="h-3.5 w-3.5 shrink-0 text-n-400"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <rect x="3" y="5.5" width="18" height="13" rx="1.5" />
-          <path d="M3.5 7.5 12 13.5l8.5-6" />
-        </svg>
-        <p class="meta text-n-400">Get in touch</p>
-      </div>
-
-      <a :href="`mailto:${profile.email}`" class="link-underline mt-2.5 block break-all text-[0.8125rem]">
-        {{ profile.email }}
-      </a>
+    <div class="mb-4">
+      <ThemeSwitch />
     </div>
+
+    <!--
+      Reached through a child component because it is a self-contained block:
+      the lead-in line, four rows, four glyphs and nothing borrowed from the
+      rail above it. Its own comment explains the layout.
+    -->
+    <ContactRail />
   </nav>
 </template>

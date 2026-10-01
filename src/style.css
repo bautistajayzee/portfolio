@@ -119,6 +119,19 @@
      6.25:1, because the accent carries real text: the section numbers in the
      rail and the `<dt>` labels in Experience. */
   --c-accent: #116e4d;
+
+  /*
+    The page grid.
+
+    Written as plain rgba rather than `color-mix()` against `--c-ink`, which is
+    the tidier-looking way to say "this colour, but very faint" and is what this
+    started as. Tailwind wraps `color-mix` in an `@supports` query and supplies
+    a fallback for engines without it, and that fallback was the full ink
+    colour - not a tint of it - so those browsers would have drawn hard 1px black
+    lines every 72px instead of a faint grid. Two hand-kept numbers are a better
+    trade than a correct rule with an incorrect fallback.
+  */
+  --c-grid: rgb(10 10 10 / 5%);
 }
 
 html.dark {
@@ -127,6 +140,10 @@ html.dark {
   --c-paper: #0b0b0d;
   --c-ink: #f2f3f5;
   --c-line: #26282d;
+
+  /* See the note in `:root`. A touch stronger than the light value because the
+     dark ground swallows more of it at the same alpha. */
+  --c-grid: rgb(242 243 245 / 9%);
 
   --c-n-50: #131316;
   --c-n-100: #1a1b1f;
@@ -170,6 +187,7 @@ html.dark {
   --color-n-950: var(--c-n-950);
 
   --color-accent: var(--c-accent);
+    --color-grid: var(--c-grid);
 
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-serif: 'Instrument Serif', ui-serif, Georgia, 'Times New Roman', serif;
@@ -190,6 +208,38 @@ html.dark {
 
   html {
     background-color: var(--color-paper);
+
+    /*
+      The grid the whole page sits on.
+
+      Painted on the root element rather than on a fixed pseudo-layer, and that
+      is the load-bearing choice. A root background propagates to the canvas, so
+      it is composited once for the viewport instead of being a full-viewport
+      element the compositor has to re-raster on every scroll frame — which is
+      the usual way a "subtle background texture" quietly costs ten points of
+      scrolling performance on a phone.
+
+      Two gradients, not a repeating background image: no extra request, no
+      decode, and the lines stay hairline at any zoom because the browser paints
+      them as vectors rather than scaling pixels.
+
+      The second pair is a coarser division at the same alpha. One grid alone
+      reads as graph paper and flattens the page; a major line every four cells
+      gives the eye a rhythm to measure the column rhythm against, which is the
+      whole point of putting a grid behind editorial type.
+    */
+    background-image:
+      linear-gradient(to right, var(--color-grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px),
+      linear-gradient(to right, var(--color-grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px);
+    background-size:
+      4.5rem 4.5rem,
+      4.5rem 4.5rem,
+      18rem 18rem,
+      18rem 18rem;
+    background-position: center top;
+
     -webkit-text-size-adjust: 100%;
   }
 

@@ -33,13 +33,47 @@
       content="IT, graphic design, and problem-solving. An aspiring IT professional based in Cavite, Philippines."
     />
     <!--
-      No `og:image` on purpose. There is no share image in the repository, and
-      pointing at a path that does not resolve produces a worse result in every
-      chat and social preview than omitting it: a broken thumbnail. Add one and
-      this line becomes worth writing.
+      `og:image` and `twitter:image`, both 1200x630, generated from
+      `dist/__og.html` by screenshotting it with the real webfonts loaded - see
+      the note at the top of that file. Rendered in a browser rather than by an
+      SVG rasteriser because text metrics are the whole content of a share card
+      and a rasteriser's guess at them is how you get a card with the name
+      wrapped in the wrong place.
+
+      Served from `/og-image.png`. The absolute URL is left to the platform:
+      every consumer resolves a relative `og:image` against the page URL, and
+      hardcoding a host here would break the preview deployments, which have
+      their own.
+
+      There was deliberately no `og:image` before, because pointing at a path
+      that does not resolve produces a worse result in every preview than
+      omitting it: a broken thumbnail. Now that the file exists, this is worth
+      writing.
     -->
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Jayzee G. Bautista — IT, design and problem-solving" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="/og-image.png" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!--
+      The PNG icons, and why they exist alongside the SVG.
+
+      `favicon.svg` covers the browser tab and nothing else. Safari's "Add to
+      Home Screen" reads `apple-touch-icon` and ignores SVG entirely - with no
+      such link it screenshots the page, so the icon on an iPhone home screen
+      used to be a thumbnail of the hero photograph. The manifest covers Android
+      and installed-web-app surfaces, and a manifest with no icons is worse than
+      no manifest at all.
+
+      All three PNGs are generated from `favicon.svg` by `scripts/make-icons.mjs`,
+      so there is one source for the mark rather than four hand-edited copies.
+    -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
 
     <!--
       Applied before first paint so a dark-theme visitor never sees a white
