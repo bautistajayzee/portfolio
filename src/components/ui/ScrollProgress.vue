@@ -1,6 +1,6 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { gsap, prefersReducedMotion, refreshScroll } from '../../composables/useSmoothScroll.js'
+import { gsap, refreshScroll } from '../../composables/useSmoothScroll.js'
 
 /**
  * A 1px rule pinned to the top of the viewport that fills as you read.
@@ -18,10 +18,21 @@ onMounted(() => {
   // trigger's end value is wrong until they have settled.
   document.fonts?.ready.then(refreshScroll)
 
-  if (prefersReducedMotion()) {
-    gsap.set(bar.value, { scaleX: 1 })
-    return
-  }
+  /*
+    No reduced-motion branch, and that is a decision rather than an omission.
+
+    There used to be one: under `prefers-reduced-motion: reduce` the bar was set
+    to `scaleX: 1` and left there. The policy for this site is stated in
+    `style.css` - the scroll moves regardless, so the name types regardless -
+    and a progress bar frozen at 100% is the worst reading of that policy: it
+    says "finished" before the reader has scrolled at all, which looks like a
+    broken widget rather than a considered decision. Scrubbing the bar with the
+    scroll is not motion in the sense the setting is about; it is the bar
+    reporting the scroll position.
+
+    It was also untestable while it was there, since any browser with the
+    setting on could never show the thing working.
+  */
 
   tween = gsap.fromTo(
     bar.value,
@@ -51,13 +62,28 @@ onBeforeUnmount(() => tween?.scrollTrigger?.kill())
     of layout, and GSAP is scaling the inner bar, not this element.
   -->
   <div
-    class="pointer-events-none fixed inset-x-0 top-0 z-[60] h-px bg-transparent"
+    class="pointer-events-none fixed inset-x-0 top-0 z-[60] h-0.5 bg-transparent"
     style="translate: 0 env(safe-area-inset-top)"
     aria-hidden="true"
   >
+    <!--
+      Two pixels and 70%, where it used to be one pixel and 45%.
+
+      The opacity is the part that mattered, and it was measured rather than
+      eyeballed. `bg-accent/45` over the page composites to #486f5d on the dark
+      ground (3.47:1) and to #94beaf on white (2.05:1). At one pixel tall, 2:1
+      against the page is not a progress bar, it is a rendering artefact - and on
+      a wide desktop screen with no header to frame it there is nothing else at
+      the top edge to notice it against. On a phone it happened to read better
+      purely because the sticky header's own border sat underneath it.
+
+      At 70% the same two colours give 6.96:1 and 3.30:1, which is legible in
+      both themes without turning the rule into a feature. Still one hairline
+      above the content and still flat - no glow, no shadow, no track behind it.
+    -->
     <div
       ref="bar"
-      class="h-full w-full origin-left scale-x-0 bg-accent/45"
+      class="h-full w-full origin-left scale-x-0 bg-accent/70"
     ></div>
   </div>
 </template>
