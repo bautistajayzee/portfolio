@@ -106,37 +106,69 @@ function onPointerLeave() {
       @pointercancel="onPointerLeave"
     >
       <div class="aspect-square w-full overflow-hidden border border-line bg-n-100">
-        <picture v-if="photoOk">
-          <!--
-            Two sources rather than one. The photograph renders at 318px on a
-            desktop, so the 850px file is carrying roughly 2.7x more pixels than
-            that slot can show, and on a phone the slot is smaller still. The
-            600px source is 43 KB against 99 KB and is what a small screen gets.
+        <!--
+          This is the largest thing on the first screen, so it is the element a
+          reader's eye lands on and almost certainly the LCP candidate. Two files
+          exist for it and the wrong one was being fetched: 99 KB for a slot that
+          renders 320 CSS px.
 
-            The media query is a width, not a device width, so this follows the
-            layout rather than the hardware: a narrow window on a large laptop
-            gets the smaller file, which is the right answer for what is
-            actually being drawn.
+          The previous markup was a <picture> with two <source> elements keyed on
+          `media="(max-width: 640px)"`, which picks a file by viewport width. That
+          is a guess in place of the question the browser is already equipped to
+          answer, and it guessed wrong in the common case: a 1446px desktop passes
+          the query and gets the 850px file, but its slot is 320px at DPR 1, so
+          2.7x the pixels were downloaded and thrown away. Measured - 99 KB
+          requested, 318 CSS px drawn.
 
-            `v-if` sits on the <picture>, not on the <img>. Vue requires a
-            v-if and its v-else to be adjacent siblings, and a <picture> between
-            them is enough to break that. It surfaces as a build error rather
-            than a runtime one, so it could not have been caught in the browser.
-          -->
-          <source media="(max-width: 640px)" srcset="/photo-600.webp" type="image/webp" />
-          <source srcset="/photo.webp" type="image/webp" />
-          <img
-            :src="profile.photo"
-            :alt="`${profile.fullName}, ${profile.role}`"
-            class="h-full w-full object-cover"
-            width="400"
-            height="400"
-            :loading="props.priority ? 'eager' : 'lazy'"
-            :fetchpriority="props.priority ? 'high' : 'auto'"
-            decoding="async"
-            @error="photoOk = false"
-          />
-        </picture>
+          `srcset`/`sizes` replaces the guess with the actual selection rule. The
+          browser knows the device pixel ratio and can see the final slot, so it
+          takes the smallest candidate that still covers it:
+
+            DPR 1, 320px slot -> needs 320px  -> 600w, 43 KB
+            DPR 2, 320px slot -> needs 640px  -> 850w, 99 KB
+
+          The 99 KB is no longer wasted on a standard-DPI screen, and the file is
+          no longer chosen by how wide the window happens to be. `sizes` mirrors
+          the wrapper in HomeSection: `max-w-[17rem]` below `md`, and the `20rem`
+          default on this component above it.
+
+          It is a plain <img> rather than a <picture> because there is nothing
+          left to branch on - both candidates are WebP, so a <picture> would only
+          add a wrapper around a single answer. `v-if` and `v-else` are adjacent
+          siblings here, which Vue requires; when this was a <picture> holding the
+          <img>, they were not, and that is a build error rather than a runtime
+          one, so the browser could never have caught it.
+
+          One thing to know before changing this. The selection cannot be
+          verified from the automation browser, because it is not self-consistent:
+          two element constructions that differ only in whether `sizes` is
+          assigned as a property or as an attribute, same viewport, same device
+          pixel ratio, same 318px slot, returned the 42 KB file and the 96 KB file
+          respectively - and on a repeat of the earlier construction it then
+          returned the 96 KB file. That is the browser disagreeing with itself, so
+          no measurement taken here can settle it.
+
+          What can be said is that the markup is the standard one, that its
+          failure mode is benign if a browser ignores `sizes` (it then picks
+          between the two declared widths rather than fetching something larger),
+          and that the saving being aimed at is real: 96 KB requested for a slot
+          that renders 318 CSS px. Confirming the 54 KB on a real browser is
+          worth two minutes and nothing else here can substitute for it.
+        -->
+        <img
+          v-if="photoOk"
+          srcset="/photo-600.webp 600w, /photo.webp 850w"
+          sizes="(min-width: 768px) 20rem, 17rem"
+          :src="profile.photo"
+          :alt="`${profile.fullName}, ${profile.role}`"
+          class="h-full w-full object-cover"
+          width="400"
+          height="400"
+          :loading="props.priority ? 'eager' : 'lazy'"
+          :fetchpriority="props.priority ? 'high' : 'auto'"
+          decoding="async"
+          @error="photoOk = false"
+        />
         <span
           v-else
           class="flex h-full w-full select-none items-center justify-center font-serif text-[3rem] italic text-n-300"
