@@ -6,21 +6,37 @@ and no database — with one small exception described below.
 ## The one piece of server-side state
 
 The footer can show how many people have the page open. That needs a counter
-somewhere, and it lives in a Netlify Blobs store reached by
-`netlify/functions/viewers.js`.
+somewhere, and it lives in a Redis sorted set reached by `api/viewers.js`, a
+Vercel Function. The store is created by a Redis integration installed from the
+Vercel Marketplace; its credentials arrive as environment variables
+(`KV_REST_API_URL`, `KV_REST_API_TOKEN`) and are never read from anywhere else,
+never logged, and never sent to a browser.
 
 What it stores, exactly:
 
 - a random identifier generated in your tab (`crypto.randomUUID`)
-- a timestamp, so the entry can be expired
+- the time it was last seen, which is the sorted set's score
 
 What it does **not** store: your IP address, your user agent, a cookie, a
-fingerprint, or anything that identifies you. Each entry self-expires after 90
-seconds without a heartbeat, so nothing accumulates over time. The identifier is
-meaningless outside the blob, which is never read by anyone.
+fingerprint, or anything that identifies you. Each entry is pruned once its score
+is older than 90 seconds, and that happens on the next write rather than on a
+timer, so nothing accumulates over time. The identifier is meaningless outside
+the set, which is never read by anyone — the only value that leaves the function
+is a count.
 
-The endpoint only accepts same-origin POSTs, which is what stops anyone from
-inflating the number from a script on another site.
+Two further properties worth stating plainly:
+
+- **The count is never cached.** The endpoint and both host configs all send
+  `Cache-Control: no-store`, because a cached viewer count is a wrong viewer
+  count.
+- **The endpoint is not required.** If the store is not connected, or is
+  unreachable, the function answers 503 and the client renders no badge at all.
+  It degrades to absent rather than to a guess.
+
+The endpoint only accepts same-origin requests, which is what stops anyone from
+inflating the number from a script on another site, and refuses any identifier
+longer than 64 characters, since the identifier is an opaque token and nothing
+else.
 
 ## Reporting something
 

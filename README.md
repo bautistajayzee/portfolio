@@ -21,7 +21,7 @@ node scripts/audit-data.mjs   # content consistency check (exits 1 on failure)
 | `vue` | the whole app |
 | `tailwindcss` + `@tailwindcss/vite` | all styling; no CSS framework, no component library |
 | `gsap` | ScrollTrigger only — section drift, hero parallax, scroll progress |
-| `@netlify/blobs` | storage behind the Netlify presence function. **Functions only** — see [Deploy](#deploy) |
+| `@upstash/redis` | storage behind the presence function. **Functions only** — see [Deploy](#deploy) |
 
 There is no router, no state library, no UI kit, and no HTTP client. Every page
 of the site is in one document and navigation is anchor-based.
@@ -51,8 +51,12 @@ src/
                            ThemeSwitch, ChatWidget, ChatAvatar, LetterComposer,
                            Lightbox, Rule, ScrollProgress
   directives/reveal.js
-netlify/functions/viewers.js   presence endpoint (Blobs store)
+api/viewers.js                 presence endpoint (Redis sorted set)
+vercel.json                    build config + security headers for Vercel
+netlify.toml                   the same headers, for a future Netlify deploy
 scripts/audit-data.mjs         content consistency check
+scripts/audit-headers.mjs      what vercel.json actually sends, per path
+scripts/audit-viewers.mjs      drives the presence function against a Redis shim
 public/                        favicon, profile photo, resume PDF, 3 screenshots
 ```
 
@@ -155,23 +159,65 @@ from contrast alone.
 
 ## Deploy
 
-Static. `netlify.toml` declares the build, the function directory, and the
-security headers — including a CSP whose script hash is computed from the built
-output, with the recompute command written next to it.
-
-**The presence function only deploys through the CLI or a linked Git repo.**
-Dragging `dist/` into the browser drops `netlify/functions/`, the badge quietly
-does not appear, and the console shows a 404 on `/api/viewers` — that is the
-graceful path, not a fault.
+**Vercel**, from `vercel.json`: build command, output directory, and the security
+headers — including a CSP whose script hash is computed from the built output,
+with the recompute command written next to it.
 
 ```bash
-netlify deploy --prod
+npm run build     # also runs scripts/audit-headers.mjs via postbuild
+vercel deploy --prod
 ```
 
-The function keeps a presence map in Netlify Blobs as one JSON object, pruned on
-every heartbeat past a 90s TTL, so it cannot accumulate litter and does not
-depend on a clean disconnect. It stores a random per-tab id and a timestamp.
-Nothing identifying. Requires no third-party account. See `SECURITY.md`.
+`scripts/audit-headers.mjs` runs after every build, including a host's, and
+fails it if the CSP hash no longer matches `dist/index.html`. A stale hash does
+not break the page — it stops the one inline script that sets the theme before
+first paint, so the symptom is a white flash on a dark-theme load and a CSP
+error in the console. Failing the build is a much better way to find out than
+shipping it.
+
+**The presence function needs a Redis store.** Install the Redis integration from
+the [Vercel Marketplace](https://vercel.com/marketplace?category=storage&search=redis);
+it provides `KV_REST_API_URL` and `KV_REST_API_TOKEN`. Those are the names the
+old `@vercel/kv` client read, which is why they are used rather than the
+`UPSTASH_REDIS_*` variant the library also accepts — `@vercel/kv` is deprecated
+and the integration kept its variable names when it was rebranded.
+
+**Without those variables the site still deploys and still works.** The endpoint
+answers 503, the client reads that as "nobody is here", and the badge is simply
+absent. It is the only feature on the site with an external dependency, and it
+is built so that being wrong about it costs one small flourish and nothing else.
+
+The function keeps presence in one Redis sorted set scored by last-seen time,
+pruned past a 90s TTL on every write, so it cannot accumulate litter and does not
+depend on a clean disconnect. Sorted set rather than a JSON object because
+`ZADD`/`ZCARD`/`ZREMRANGEBYSCORE` are single server-side commands: the previous
+JSON version read the whole map, modified it in JavaScript and wrote it back,
+which is a read-modify-write across a network hop where two simultaneous
+heartbeats raced and one visitor silently vanished. It stores a random per-tab id
+and a timestamp. Nothing identifying. See `SECURITY.md`.
+
+`scripts/audit-viewers.mjs` exercises all of that — heartbeat, refresh, leave,
+TTL prune, cross-origin refusal, malformed input — against a local stand-in for
+the Upstash REST API, so the real `@upstash/redis` client is doing the calling.
+`vite preview` cannot do this: it serves `dist/` and has no notion of a
+serverless function, so locally the endpoint is simply missing and the absence
+looks exactly like success from the browser.
+
+### Netlify
+
+`netlify.toml` is kept with the same headers, so the Netlify path works whenever
+that account has production deploys again. It currently does not — the team is
+on operational credits, which keep an existing deploy online but cannot pay for
+a new one.
+
+One thing is missing there and only there: `netlify/functions/viewers.js` and
+`@netlify/blobs` are gone, replaced by `api/viewers.js` and Redis, because Blobs
+is a Netlify product that exists nowhere else. So a Netlify deploy 404s on
+`/api/viewers` and the badge does not render. Nothing breaks.
+
+If Netlify becomes the host again, the badge is the only thing to restore, and
+it should be restored as a Netlify function rather than by reverting the client —
+`useViewers` treats any failure as "no badge", so it needs no change at all.
 
 ---
 

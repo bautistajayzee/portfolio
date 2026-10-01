@@ -1,18 +1,32 @@
 # Netlify build configuration.
 #
-# Only applies when deploying through the Netlify CLI or a linked Git repo. If
-# you deploy by dragging `dist/` into the browser, Netlify never reads this file
-# and the function will not be deployed — see the note in README.md.
+# The site is deployed on Vercel; this file is kept so the Netlify path still
+# works whenever that account has production deploys again, which at the time of
+# writing it does not - the team is on operational credits, which keep the
+# existing deploy online but cannot pay for a new one.
+#
+# What is here is the build config and the security headers, and the headers are
+# the reason this file is longer than three lines. They are duplicated in
+# `vercel.json`, because neither host reads the other's config, and a host with
+# no header file is a site with no CSP at all. The two are kept in step by
+# `scripts/audit-headers.mjs`.
+#
+# The presence function is NOT here. It used to be, at
+# `netlify/functions/viewers.js`, backed by `@netlify/blobs`. It is now
+# `api/viewers.js` on Vercel Functions, backed by Redis, because Blobs is a
+# Netlify product that exists nowhere else. So on this host `/api/viewers` 404s,
+# the client reads that as "nobody is here", and the viewing badge does not
+# render. Nothing breaks; one optional flourish is absent. See README.md.
 
 [build]
   command = "npm run build"
   publish = "dist"
-  functions = "netlify/functions"
 
 # Pinned because Vite 8 declares `engines.node: ^20.19.0 || >=22.12.0`. Without
 # this the build runs on whatever Node Netlify defaults to that month, and the
 # failure looks like a broken project rather than a runtime mismatch. "22" means
 # the newest 22.x, so it stays above 22.12 while still taking security patches.
+# Vercel reads `engines.node` in package.json instead.
 [build.environment]
   NODE_VERSION = "22"
 
@@ -108,9 +122,9 @@
     # one-way door that needs domain registration, and that is your call.
     Strict-Transport-Security = "max-age=63072000; includeSubDomains"
 
-# The presence endpoint is live state and must never be cached, at Netlify or in
-# any browser. The function already sends this header, but pinning it here too
-# means a misconfigured build cannot serve a stale count.
+# The presence endpoint is live state and must never be cached, by Netlify or by
+# any browser. `api/viewers.js` already sends this header itself, but pinning it
+# here too means a misconfigured build cannot serve a stale count.
 [[headers]]
   for = "/api/viewers"
   [headers.values]

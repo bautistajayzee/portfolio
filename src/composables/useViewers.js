@@ -1,7 +1,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
 /**
- * "N people viewing now" — the client half of `netlify/functions/viewers.js`.
+ * "N people viewing now" — the client half of `api/viewers.js`.
  *
  * The rules this follows, all of them about not lying:
  *
@@ -9,17 +9,19 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
  *   guessed, defaulted to 1, or rendered optimistically. Until then the badge
  *   does not exist in the DOM, so a failed function means no badge rather than
  *   a wrong one.
- * · **A failed request hides the badge again.** If Netlify returns 404 — the
- *   common case when the function has not been deployed yet, or when running
- *   `vite dev` instead of `netlify dev` — the count goes back to `null` and the
- *   sidebar closes the gap.
+ * · **A failed request hides the badge again.** The endpoint is a serverless
+ *   function, so it is absent in the common cases of running `vite dev`, of
+ *   deploying `dist/` as bare static files, and of it answering 503 because no
+ *   store is connected. Each of those puts `count` back to `null` and the
+ *   sidebar closes the gap. The badge is a small true thing, and it is only
+ *   allowed to exist when it is known to be true.
  * · **Leaving sends a beacon, not a fetch.** `pagehide` fires when a tab is
  *   closed or a laptop lid shuts, and an in-flight `fetch` is routinely cancelled
  *   there. `sendBeacon` survives it.
  *
  * Nothing here identifies anybody: the id is a random string generated in the
- * tab, and the server stores it only as a key with a timestamp, pruned after the
- * TTL. No IP, no user agent, no personal data.
+ * tab, and the server stores it only as a member of a sorted set scored by
+ * time, pruned after the TTL. No IP, no user agent, no personal data.
  */
 
 /** Beating more often than this wastes function invocations for no gain. */
