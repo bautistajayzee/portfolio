@@ -54,6 +54,31 @@ export function useViewers(endpoint = '/api/viewers') {
       if (!res.ok) throw new Error(String(res.status))
 
       const data = await res.json()
+
+      /*
+       * Only a response that says presence is working may put a number on the
+       * page.
+       *
+       * `available === true` is required rather than `!== false`. The difference
+       * is a server that answers 200 with a bare `{ count: 0 }` and no flag at
+       * all, which was measured while checking this change: `available: false`
+       * hides the badge, `available: true` shows it, and a missing flag used to
+       * fall through to `count = 0` and draw "0 people viewing now". That is
+       * the precise failure this file exists to prevent - a confident, false
+       * statement about live state - and it survived a fix aimed at exactly that
+       * class of bug, which is the part that made it worth removing rather than
+       * merely narrowing.
+       *
+       * The direction of the test is the whole design. Absent evidence of
+       * presence, draw nothing; only positive confirmation draws a number. The
+       * cost if this is ever too strict is a missing badge, which is silent and
+       * harmless. The cost of being too loose is a lie.
+       */
+      if (data?.available !== true) {
+        count.value = null
+        return
+      }
+
       count.value = typeof data?.count === 'number' ? data.count : null
     } catch {
       // No function deployed, offline, or blocked. Showing a stale number would

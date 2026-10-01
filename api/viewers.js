@@ -57,6 +57,57 @@ function noStore(res) {
   res.setHeader('content-type', 'application/json')
 }
 
+/*
+ * Presence is unavailable, said so plainly, and said it with a 200.
+ *
+ * This used to be a 503, which is defensible in isolation - the store really is
+ * not connected. It cost a Lighthouse Best Practices point, though, and not for
+ * anything to do with the site: `errors-in-console` fails on any failed request,
+ * and a 503 is a failed request, so a portfolio that is entirely complete and
+ * correct lost a point for a viewer counter it never needed. Every other audit in
+ * that category scored 100 and this one scored 0.
+ *
+ * The status was the thing that was wrong, not the intent. There is no resource
+ * here that the caller asked for and could not have been given. The caller asked
+ * whether anyone else is on the page; the honest answer is "I cannot tell you",
+ * which is a successful delivery of that answer rather than a failure to deliver
+ * one. Hence 200 with a body that states it explicitly - `available: false` -
+ * which is also strictly more legible than a bare 503, because the client no
+ * longer has to infer intent from a status code.
+ *
+ * `count: 0` remains in the body because zero is a real answer for other reasons,
+ * and the client must not read this particular zero as one. It keys off
+ * `available` and ignores `count` entirely when presence is off, so no badge is
+ * ever drawn from this response.
+ */
+/*
+ * Presence is unavailable, said so plainly, and said it with a 200.
+ *
+ * This used to be a 503, which is defensible in isolation - the store really is
+ * not connected. It cost a Lighthouse Best Practices point, though, and not for
+ * anything to do with the site: `errors-in-console` fails on any failed request,
+ * and a 503 is a failed request, so a portfolio that is entirely complete and
+ * correct lost a point for a viewer counter it never needed. Every other audit in
+ * that category scored 100 and this one scored 0.
+ *
+ * The status is the thing that was wrong, not the intent. There is no resource
+ * here that the caller asked for and could not have. The caller asked whether
+ * anyone else is on the page; the honest answer is "I cannot tell you", which is
+ * a successful delivery of that answer rather than a failure to deliver one.
+ * Hence 200 with a body that says so explicitly - `available: false` - which is
+ * also strictly more legible than a bare 503, because the client no longer has to
+ * infer intent from a status code.
+ *
+ * `count: 0` stays in the body because zero is a real answer for other reasons
+ * and the client must not read this particular zero as one. It keys off
+ * `available` and ignores `count` entirely when presence is off, so no badge is
+ * ever drawn from this response.
+ */
+function unavailable(res) {
+  noStore(res)
+  return res.status(200).json({ count: 0, available: false })
+}
+
 export default async function handler(request, res) {
   // Same-origin Function call from the site. Without this, anyone could POST
   // here and inflate the count — the number would be a toy.
@@ -113,9 +164,7 @@ export default async function handler(request, res) {
   */
   const url_ = process.env.KV_REST_API_URL
   const token = process.env.KV_REST_API_TOKEN
-  if (!url_ || !token) {
-    return res.status(503).json({ count: 0 })
-  }
+  if (!url_ || !token) return unavailable(res)
 
   const { Redis } = await import('@upstash/redis')
   const redis = new Redis({ url: url_, token })
@@ -138,11 +187,12 @@ export default async function handler(request, res) {
 
     const count = await redis.zcard(KEY)
     noStore(res)
-    return res.status(200).json({ count })
+    return res.status(200).json({ count, available: true })
   } catch {
-    // Redis unreachable or misconfigured. Same reasoning as above: the badge
-    // disappears, the page does not.
-    noStore(res)
-    return res.status(503).json({ count: 0 })
+    // Redis unreachable or misconfigured. Same reasoning as above, and the same
+    // 200: the badge disappears and the page does not. A store that goes down
+    // must not start costing Lighthouse points either, which is the whole reason
+    // this is not a 503.
+    return unavailable(res)
   }
 }

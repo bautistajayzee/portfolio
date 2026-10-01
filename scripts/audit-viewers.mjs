@@ -216,9 +216,19 @@ delete process.env.KV_REST_API_URL
 delete process.env.KV_REST_API_TOKEN
 {
   const res = await call(handler, { body: JSON.stringify({ id: 'a' }) })
-  ok(res.statusCode === 503, `no store connected: expected 503, got ${res.statusCode}`)
-  ok(res.body?.count === 0, `no store connected: expected count 0, got ${JSON.stringify(res.body)}`)
-  console.log(`  no store connected        503, badge hides            ${res.statusCode === 503 ? 'OK' : 'FAIL'}`)
+/*
+ * Asserted as a 200 carrying `available: false`, not a 503. A 503 was correct
+ * about the store and wrong about the response: it logged a console error on
+ * every page load and failed Lighthouse `errors-in-console`, which was the
+ * single non-100 audit in Best Practices on a site with nothing else wrong with
+ * it. Both halves are pinned here - the status and the flag - because dropping
+ * `available` while keeping the 200 would be the worst of the two: no console
+ * error, and a badge lying that nobody is on the page.
+ */
+ok(res.statusCode === 200, `no store connected: expected 200, got ${res.statusCode}`)
+ok(res.body?.available === false, `no store connected: expected available false, got ${JSON.stringify(res.body)}`)
+ok(res.body?.count === 0, `no store connected: expected count 0, got ${JSON.stringify(res.body)}`)
+console.log(`  no store connected        200 available:false        ${res.statusCode === 200 && res.body?.available === false ? 'OK' : 'FAIL'}`)
 }
 
 /* 2. With a store connected, heartbeats accumulate and leaving removes one. */
@@ -231,6 +241,15 @@ process.env.KV_REST_API_TOKEN = 'test-token'
   const first = await call(handler, { body: JSON.stringify({ id: 'visitor-1' }) })
   ok(first.statusCode === 200, `first heartbeat: expected 200, got ${first.statusCode} ${JSON.stringify(first.body)}`)
   ok(first.body?.count === 1, `first heartbeat: expected count 1, got ${JSON.stringify(first.body)}`)
+  /*
+   * The client only draws the badge when it sees `available: true`, so the
+   * success path has to be pinned here as well as the failure path. Asserting
+   * only `count` on success would let the flag be dropped from the happy path
+   * without anything failing - and the result would be a badge that never
+   * appears, with every count assertion still green. Both halves of the
+   * contract are checked because the client depends on both.
+   */
+  ok(first.body?.available === true, `first heartbeat: expected available true, got ${JSON.stringify(first.body)}`)
 
   at(t0 + 1000)
   const second = await call(handler, { body: JSON.stringify({ id: 'visitor-2' }) })
