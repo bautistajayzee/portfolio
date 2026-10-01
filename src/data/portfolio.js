@@ -421,9 +421,14 @@ export const projects = [
     // `node-id` is kept so the link lands on the frame. The Figma file name is
     // "GARMINO-BAUTISTA-LAB-1" — the link has to match it, the title need not.
     href: 'https://www.figma.com/design/d6zsqxJEd2p68LhrSq8wkR/GARMINO-BAUTISTA-LAB-1?node-id=1-2',
-    // "View" on its own does not say where it goes, and these two rows have no
-    // screenshot to hint at it. Naming the destination is the difference between
-    // a link and a promise.
+    // Both a Figma link and a screenshot, which is why this row now carries two
+    // affordances rather than one: the screenshot shows what was made, the link
+    // opens the actual file. Rasterised from the Figma PDF export - that file
+    // was 16.2 MB and this is 129 KB of it.
+    preview: '/Komiks.webp',
+    previewAlt:
+      'Komiks online comic store landing page: a dark hero reading "The Best Online Comic Store", a keyword search field, four trust icons, and a Vision #7 issue card priced at $24.99.',
+    previewCaption: 'Komiks - online comic store, landing page',
     linkLabel: 'View in Figma',
   },
   {
@@ -436,6 +441,14 @@ export const projects = [
     // file name is "BAUTISTA_JAYZEE_BSIT31A1" — the link has to match it, the
     // title need not.
     href: 'https://www.figma.com/design/0qxjUMFrh0Q5LgU9KEBrvC/BAUTISTA_JAYZEE_BSIT31A1?node-id=0-1',
+    // As above: the screenshot is the phone-sized onboarding screen the file
+    // opens on, and the link goes to the file. Exported at 2x from a 412x917pt
+    // frame, so it is a genuinely portrait asset rather than a landscape one
+    // stretched to fit the row.
+    preview: '/GoPeso.webp',
+    previewAlt:
+      'GoPeso banking app onboarding screen: the GoPeso bank mark and the line "Bank Smarter, Live Better." above a blue card showing the name Jayzee Bautista, four masked card digits, a Visa logo, a Get started button, and a page-indicator dot.',
+    previewCaption: 'GoPeso - banking app, onboarding',
     linkLabel: 'View in Figma',
   },
 ]

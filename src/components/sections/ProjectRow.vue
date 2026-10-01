@@ -50,8 +50,21 @@ const enlarged = ref(false)
         {{ project.description }}
       </p>
 
-      <!-- the one affordance: opens a screenshot, or follows a link -->
-      <div class="md:col-span-2 md:flex md:justify-end">
+      <!--
+        The affordances, side by side and right-aligned.
+
+        These used to be mutually exclusive - `v-if` on the screenshot button and
+        `v-else-if` on the link - on the assumption that a row has a screenshot
+        *or* somewhere to go. Komiks and GoPeso turned out to have both, and
+        adding a screenshot to them silently deleted their Figma links: the two
+        rows went from "View in Figma" to "View" and nothing on the page said
+        that a real destination had been dropped.
+
+        So they are independent now. A screenshot shows what was made; a link
+        opens the file it was made in. Which of the two a row has is decided by
+        the data, and either may be absent.
+      -->
+      <div class="flex flex-wrap items-center justify-start gap-x-5 gap-y-1 md:col-span-2 md:flex-nowrap md:justify-end">
         <button
           v-if="project.preview"
           type="button"
@@ -77,7 +90,7 @@ const enlarged = ref(false)
         </button>
 
         <a
-          v-else-if="project.href"
+          v-if="project.href"
           :href="project.href"
           :target="project.href.startsWith('http') ? '_blank' : undefined"
           :rel="project.href.startsWith('http') ? 'noopener noreferrer' : undefined"
@@ -86,8 +99,10 @@ const enlarged = ref(false)
           <!--
             `linkLabel` lets the data name the destination, so "View in Figma"
             is set once per project rather than taught to this component. The
-            rows that open a screenshot keep the plain "View", which is enough
-            there: the thing being viewed is right there in the row.
+            button that opens a screenshot keeps the plain "View", which is
+            enough there: the thing being viewed is right there in the row.
+
+            Beside it rather than instead of it - see the note on the wrapper.
 
             `whitespace-nowrap` is load-bearing. The text measures 106px and the
             column is 120px, but with the 8px gap and the 16px icon the whole

@@ -228,10 +228,13 @@ it should be restored as a Netlify function rather than by reverting the client 
 Honest list, not a to-do list.
 
 - **The contact composer does not deliver mail**, by design. See above.
-- **Three of six projects have no screenshot**, so their rows are bare Figma
-  links. Exporting PNGs to `public/` is the only thing that changes this.
-- **The resume PDF says "studentager".** A typo inside a binary PDF; it needs
-  editing in the source document.
+- **One of six projects has no screenshot** — the portfolio itself, which has
+  nowhere to link out to either. The other five all have one.
+- **The resume PDF was checked for a "studentager" typo reported in an earlier
+  revision of this file, and it does not exist.** Decoded with pdf.js and
+  searched in every casing, the only "ager" strings in the document are "eager"
+  and "Manager". The line has been removed rather than left to send someone
+  looking for a fault that is not there.
 - **Project screenshots are 1919px wide** for a lightbox capped near 1400. They
   are only fetched when opened, so it costs nothing on load, but they are
   oversized for what is drawn.

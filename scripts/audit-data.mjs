@@ -75,7 +75,24 @@ projects.forEach((p) => {
   if (p.link && /[?&]t=/.test(p.link)) fail(`project "${p.title}" link still carries the share-tracking param`)
 })
 const withPreview = projects.filter((p) => p.preview).length
-warn(`${projects.length} projects, ${withPreview} with a screenshot (the rest are bare Figma links)`)
+const missing = projects.filter((p) => !p.preview)
+/*
+ * Name which projects are missing a preview rather than describing them all as
+ * "bare Figma links". That phrasing was written when three of six had none and
+ * every one of those three linked out to Figma; it stopped being true the moment
+ * two of them gained a screenshot, and a warning that describes the wrong set
+ * is worse than no warning because it stops being read.
+ *
+ * A row legitimately has no screenshot when it has nowhere to go either. The
+ * portfolio itself is that case: `href: null` and no image, because there is no
+ * external build to point at and a picture of this page is this page.
+ */
+warn(
+  `${projects.length} projects, ${withPreview} with a screenshot` +
+    (missing.length
+      ? ` - without one: ${missing.map((p) => `${p.title}${p.href ? ' (links out)' : ' (no external link either)'}`).join(', ')}`
+      : ''),
+)
 
 // --- chat -----------------------------------------------------------------
 chat.forEach((q, i) => {
