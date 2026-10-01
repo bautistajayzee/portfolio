@@ -28,7 +28,7 @@ const { time, date, zone } = useClock()
     aria-label="Sections"
   >
     <a href="#home" class="group w-fit leading-none">
-      <span class="block text-[0.875rem] font-semibold tracking-[-0.015em] group-hover:text-n-500">
+      <span class="block text-[0.9375rem] font-semibold tracking-[-0.02em] group-hover:text-n-500">
         {{ profile.firstName }} {{ profile.lastName }}
       </span>
     </a>

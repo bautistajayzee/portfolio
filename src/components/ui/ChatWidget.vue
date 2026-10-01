@@ -20,13 +20,11 @@ import { chat, profile } from '../../data/portfolio.js'
  * · **The panel scales out of the launcher.** `transform-origin` is pinned to
  *   bottom-right so it grows from the button that summoned it rather than
  *   from its own centre.
- * · **Minimise collapses, it does not `v-if` away.** The body is a
- *   `1fr → 0fr` grid row, which animates to the content's natural height with
- *   no hardcoded pixel maximum to drift out of sync. It also keeps the chips
- *   mounted, so expanding does not rebuild the list and drop focus. That means
- *   the collapsed content is still in the document, so it carries `inert` —
- *   `overflow: hidden` clips without removing anything from the tab order, and
- *   keyboard focus would otherwise walk into content of zero height.
+ * · **The power button switches the screen off before it closes.** The panel
+ *   fades to black and unmounts 300ms later, so it reads as a device shutting
+ *   down rather than as a dialog being dismissed. There is no minimise control
+ *   any more: on a panel this size it saved 40px, and it was the one control in
+ *   here whose purpose nobody could infer from its shape.
  * · **Closing is faster than opening.** 180ms out, 260ms in. A dismissal the
  *   viewer did not ask for should get out of the way; an arrival they did ask
  *   for is worth watching.
@@ -39,9 +37,19 @@ import { chat, profile } from '../../data/portfolio.js'
  */
 
 const open = ref(false)
-const minimised = ref(false)
 const typing = ref(false)
 const messages = ref([])
+
+/**
+ * The screen going dark.
+ *
+ * Separate from `open`, because a shutdown has a beat to it: the display fades
+ * to black first and the panel closes after, so it reads as a device switching
+ * off rather than as a dialog vanishing. Setting `open` false directly would
+ * skip that, and there would be no reason to have a power button at all.
+ */
+const poweringDown = ref(false)
+let powerTimer = 0
 
 /** Live clock, shown in the header while the panel is open. */
 const { time, zone } = useClock()
@@ -66,7 +74,6 @@ const panelEl = ref(null)
 const chipRow = ref(null)
 const launcherEl = ref(null)
 const firstChipEl = ref(null)
-const minimiseEl = ref(null)
 
 /* --- drag to scroll the question row ----------------------------------
  *
@@ -330,30 +337,36 @@ function ask(question) {
   )
 }
 
+/**
+ * Power off: the screen goes black, then the panel goes away.
+ *
+ * 300ms is the gap between the fade starting and the panel unmounting, and it
+ * is deliberately longer than the 260ms the fade itself takes - the panel has
+ * to still be there when the screen has finished going dark, or the black
+ * disappears before it is fully opaque and the whole thing reads as a flicker.
+ */
+function powerOff() {
+  if (poweringDown.value) return
+  poweringDown.value = true
+  window.clearTimeout(powerTimer)
+  powerTimer = window.setTimeout(() => {
+    poweringDown.value = false
+    close()
+  }, 300)
+}
+
 function toggle() {
-  open.value = !open.value
   if (open.value) {
-    minimised.value = false
-    scrollToLatest()
+    powerOff()
+    return
   }
+  open.value = true
+  scrollToLatest()
 }
 
 function close() {
   open.value = false
   nextTick(() => launcherEl.value?.focus())
-}
-
-/**
- * Collapse or restore the conversation.
- *
- * Focus follows to the minimise button when collapsing. Without that, someone
- * who tabbed into the question list and then minimised would leave focus
- * inside content that is now `height: 0` and invisible — the keyboard would
- * appear to be lost.
- */
-function toggleMinimised() {
-  minimised.value = !minimised.value
-  if (minimised.value) nextTick(() => minimiseEl.value?.focus())
 }
 
 /** Escape works from anywhere inside the widget, not only the message log. */
@@ -463,6 +476,7 @@ watch(open, async (isOpen) => {
 
 onBeforeUnmount(() => {
   pending.forEach(window.clearTimeout)
+  window.clearTimeout(powerTimer)
   // The reveal loop outlives the component unless it is explicitly cancelled.
   window.cancelAnimationFrame(streamRaf)
   unbindPanelWheel()
@@ -492,7 +506,7 @@ onBeforeUnmount(() => {
         The phone.
 
         A bezel, a screen, and then the panel that was already here, unchanged:
-        same header, same log, same chips, same minimise, same wheel
+        same header, same log, same chips, same wheel
         containment, same Escape, same focus. The mockup is a wrapper, not a
         rewrite, because every one of those behaviours is load-bearing and had
         already been reasoned about.
@@ -518,11 +532,39 @@ onBeforeUnmount(() => {
         ref="panelEl"
         role="dialog"
         aria-label="Ask about Jayzee"
-        class="chat-panel pointer-events-auto mb-3 w-[min(21.5rem,calc(100vw-1.25rem))] max-w-full rounded-[2.25rem] bg-n-900 p-[5px] shadow-[0_18px_44px_-26px_rgba(10,10,10,0.5)]"
+        class="chat-panel phone-frame pointer-events-auto mb-3 w-[clamp(16.5rem,80vw,19rem)] max-w-full rounded-[2.5rem] bg-[#2b2b2e] p-[6px] shadow-[0_18px_44px_-26px_rgba(10,10,10,0.5)]"
       >
-        <div class="relative flex max-h-[min(40rem,calc(100dvh-5.5rem))] flex-col overflow-hidden rounded-[1.85rem] bg-paper">
+        <!--
+          Side buttons, on the frame rather than inside it. Two on the left, one
+          on the right, positioned absolutely against the bezel so they read as
+          hardware. Purely decorative, and `aria-hidden` for the same reason the
+          island is: the phone is a frame around a dialog, not a device the site
+          pretends to be running on.
+        -->
+        <span class="phone-rim" aria-hidden="true"></span>
+        <span class="phone-btn phone-btn--v1" aria-hidden="true"></span>
+        <span class="phone-btn phone-btn--v2" aria-hidden="true"></span>
+        <span class="phone-btn phone-btn--power" aria-hidden="true"></span>
+
+        <div class="relative flex h-[min(34rem,calc(100dvh-6.5rem))] flex-col overflow-hidden rounded-[2.1rem] bg-paper">
           <!-- Dynamic Island -->
-          <div class="absolute left-1/2 top-[7px] z-10 h-[1.4rem] w-[4.5rem] -translate-x-1/2 rounded-full bg-n-950" aria-hidden="true"></div>
+          <!--
+            The island and the bezel are fixed colours rather than tokens, and
+            that is the whole reason the frame was white in dark mode. The `n-`
+            ramp tracks contrast *against the page*, not absolute lightness:
+            `n-900` is near-black on paper and `#eff1f3` on the dark ground, so
+            a bezel painted with it became a white frame around a black screen.
+            A device body is graphite in both themes.
+
+            The island is fixed near-black because it is a cutout in the glass,
+            not an overlay on content. On the dark theme it disappears against
+            the screen, which is what an OLED island actually does and why
+            iPhones only show one in light mode.
+
+            The home indicator is the opposite case - it sits *on* the screen and
+            has to contrast with it - so that one stays a themed token.
+          -->
+          <div class="absolute left-1/2 top-[7px] z-10 h-[1.4rem] w-[4.5rem] -translate-x-1/2 rounded-full bg-[#0a0a0a]" aria-hidden="true"></div>
 
           <!--
             Status bar. Signal, wifi and battery are drawn as shapes rather than
@@ -555,6 +597,17 @@ onBeforeUnmount(() => {
             </span>
           </div>
 
+          <!--
+            The display going off. Purely visual and `aria-hidden`: the panel is
+            still in the DOM and still readable while this fades, it just looks
+            switched off, and `powerOff` unmounts it 300ms later.
+          -->
+          <div
+            v-if="poweringDown"
+            class="phone-screen-off absolute inset-0 z-20 bg-[#0a0a0a]"
+            aria-hidden="true"
+          ></div>
+
           <!-- header -->
           <header class="flex items-center gap-3 border-b border-line px-4 py-3">
             <ChatAvatar size="md" />
@@ -578,110 +631,110 @@ onBeforeUnmount(() => {
             </div>
 
             <button
-              ref="minimiseEl"
+            <button
               type="button"
               class="-mr-1 p-1 text-n-400 hover:text-ink"
-              :aria-label="minimised ? 'Expand conversation' : 'Minimise'"
-              :aria-expanded="!minimised"
-              @click="toggleMinimised"
+              aria-label="Close the assistant"
+              @click="powerOff"
             >
               <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4" aria-hidden="true">
-                <path
-                  :d="minimised ? 'M12 5v14M5 12h14' : 'M5 12h14'"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                />
+                <!--
+                  A power symbol rather than a close cross, because it is not
+                  one. This does not dismiss the panel, it switches the thing
+                  off, and the screen going black is what says so. A cross
+                  promised a dismissal and delivered a shutdown.
+                -->
+                <path d="M12 3.5v8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                <path d="M7.05 6.95a7 7 0 1 0 9.9 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
               </svg>
             </button>
           </header>
 
           <!--
-            The conversation collapses on minimise rather than unmounting.
+            The body of the phone: status bar above, log and chips below.
 
-            A single `1fr → 0fr` grid row animates to the content's own height,
-            so there is no hardcoded pixel maximum here to fall out of step with
-            the copy. It also keeps the chips mounted, so expanding does not
-            rebuild the list — which would otherwise drop keyboard focus.
+            `min-h-0` is load-bearing twice over — the log is a flex child that has
+            to be allowed to shrink so it can scroll inside a fixed-height screen,
+            and without it a flex item's default `min-height: auto` refuses and the
+            whole panel is pushed past the bottom of the viewport instead.
           -->
-          <div class="chat-body" :class="{ 'chat-body--closed': minimised }">
-            <div class="chat-body__inner" :inert="minimised || undefined">
-              <!--
-                The scroller is a plain div, deliberately, and the TransitionGroup
-                sits inside it as nothing but layout.
+          <div class="flex min-h-0 flex-1 flex-col">
+            <!--
+              The scroller is a plain div, deliberately, and the TransitionGroup
+              sits inside it as nothing but layout.
 
-                It used to be the other way round, with `ref="logEl"` on the
-                TransitionGroup — and a template ref on a component resolves to the
-                *component instance*, not to its root element. So `scrollTop` was
-                being assigned to a proxy object and the log never moved: it sat at
-                scrollTop 0 with 598px of content below the fold, with nothing in
-                the console to show for it. The scroll container has to be a real
-                element for a ref to reach it.
-              -->
+              It used to be the other way round, with `ref="logEl"` on the
+              TransitionGroup — and a template ref on a component resolves to the
+              *component instance*, not to its root element. So `scrollTop` was
+              being assigned to a proxy object and the log never moved: it sat at
+              scrollTop 0 with 598px of content below the fold, with nothing in
+              the console to show for it. The scroll container has to be a real
+              element for a ref to reach it.
+            -->
+            <div
+              ref="logEl"
+              class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4"
+            >
+              <TransitionGroup tag="div" name="chat-msg" class="flex flex-col gap-4">
+              <!-- greeting -->
+              <div key="greeting" class="flex items-start gap-2.5">
+                <ChatAvatar class="mt-1.5" />
+                <p :class="BOT_BUBBLE">
+                  Hi — I'm {{ profile.firstName }}. Pick a question and I'll answer it.
+                </p>
+              </div>
+
               <div
-                ref="logEl"
-                class="max-h-[min(19rem,52vh)] overflow-y-auto overscroll-contain px-4 py-4"
+                v-for="message in messages"
+                :key="message.id"
+                class="flex"
+                :class="message.from === 'me' ? 'justify-end' : 'items-start gap-2.5'"
               >
-                <TransitionGroup tag="div" name="chat-msg" class="flex flex-col gap-4">
-                <!-- greeting -->
-                <div key="greeting" class="flex items-start gap-2.5">
+                <!-- bot -->
+                <template v-if="message.from === 'bot'">
                   <ChatAvatar class="mt-1.5" />
+                  <!--
+                    No whitespace between the text and the caret: a template
+                    newline here would render as a space and put a gap in the
+                    middle of the word being typed.
+                  -->
                   <p :class="BOT_BUBBLE">
-                    Hi — I'm {{ profile.firstName }}. Pick a question and I'll answer it.
+                    {{ message.text }}<span
+                      v-if="message.id === streamingId"
+                      class="chat-caret"
+                      aria-hidden="true"
+                    ></span>
                   </p>
-                </div>
+                </template>
 
-                <div
-                  v-for="message in messages"
-                  :key="message.id"
-                  class="flex"
-                  :class="message.from === 'me' ? 'justify-end' : 'items-start gap-2.5'"
+                <!-- the question, echoed back -->
+                <p
+                  v-else
+                  class="max-w-[16rem] rounded-[10px] bg-n-100 px-3 py-2 text-[0.8125rem] leading-[1.55] text-n-800"
                 >
-                  <!-- bot -->
-                  <template v-if="message.from === 'bot'">
-                    <ChatAvatar class="mt-1.5" />
-                    <!--
-                      No whitespace between the text and the caret: a template
-                      newline here would render as a space and put a gap in the
-                      middle of the word being typed.
-                    -->
-                    <p :class="BOT_BUBBLE">
-                      {{ message.text }}<span
-                        v-if="message.id === streamingId"
-                        class="chat-caret"
-                        aria-hidden="true"
-                      ></span>
-                    </p>
-                  </template>
+                  {{ message.text }}
+                </p>
+              </div>
 
-                  <!-- the question, echoed back -->
-                  <p
-                    v-else
-                    class="max-w-[16rem] rounded-[10px] bg-n-100 px-3 py-2 text-[0.8125rem] leading-[1.55] text-n-800"
-                  >
-                    {{ message.text }}
-                  </p>
-                </div>
+              <!--
+                Typing indicator, in the same bubble the answer will land in.
 
-                <!--
-                  Typing indicator, in the same bubble the answer will land in.
-
-                  Same `BOT_BUBBLE`, same alignment, same avatar offset — so the
-                  dots visibly *become* the reply rather than one block being
-                  swapped for another. The dots keep their own tight padding because
-                  they need to sit on the text baseline, not be centred in it.
-                -->
-                <div v-if="typing" key="typing" class="flex items-start gap-2.5">
-                  <ChatAvatar class="mt-1.5" />
-                  <p :class="[BOT_BUBBLE, 'flex items-center']">
-                    <span class="flex items-center gap-1" aria-label="Jayzee is typing">
-                      <span class="dot h-1 w-1 rounded-full bg-n-400"></span>
-                      <span class="dot h-1 w-1 rounded-full bg-n-400"></span>
-                      <span class="dot h-1 w-1 rounded-full bg-n-400"></span>
-                    </span>
-                  </p>
-                </div>
-                </TransitionGroup>
+                Same `BOT_BUBBLE`, same alignment, same avatar offset — so the
+                dots visibly *become* the reply rather than one block being
+                swapped for another. The dots keep their own tight padding because
+                they need to sit on the text baseline, not be centred in it.
+              -->
+              <div v-if="typing" key="typing" class="flex items-start gap-2.5">
+                <ChatAvatar class="mt-1.5" />
+                <p :class="[BOT_BUBBLE, 'flex items-center']">
+                  <span class="flex items-center gap-1" aria-label="Jayzee is typing">
+                    <span class="dot h-1 w-1 rounded-full bg-n-400"></span>
+                    <span class="dot h-1 w-1 rounded-full bg-n-400"></span>
+                    <span class="dot h-1 w-1 rounded-full bg-n-400"></span>
+                  </span>
+                </p>
+              </div>
+              </TransitionGroup>
               </div>
 
               <!--
@@ -759,9 +812,8 @@ onBeforeUnmount(() => {
             frame detail, and padding the chip row out to clear it would move
             the control the panel exists to offer.
           -->
-          <div class="absolute bottom-[7px] left-1/2 z-10 h-[4px] w-[7rem] -translate-x-1/2 rounded-full bg-n-950/80" aria-hidden="true"></div>
+          <div class="absolute bottom-[7px] left-1/2 z-10 h-[4px] w-[7rem] -translate-x-1/2 rounded-full bg-n-600" aria-hidden="true"></div>
         </div>
-      </div>
     </Transition>
 
     <!-- launcher -->
@@ -802,7 +854,8 @@ onBeforeUnmount(() => {
             stroke-linecap="round"
             aria-hidden="true"
           >
-            <path d="M6 6l12 12M18 6L6 18" />
+            <path d="M12 3.5v8" />
+            <path d="M7.05 6.95a7 7 0 1 0 9.9 0" />
           </svg>
         </Transition>
       </button>
@@ -901,29 +954,75 @@ onBeforeUnmount(() => {
 }
 
 /*
-  The minimise collapse.
-
-  One row in a grid, animating `1fr -> 0fr`. Because `fr` resolves against the
-  content's natural height, the transition lands on the exact height it should
-  with no hardcoded maximum to keep in sync with the copy. `min-height: 0` on
-  the child is required — a grid item's default `min-height: auto` refuses to
-  shrink below its content, and the whole thing silently fails to collapse.
+  The display going off. Two states rather than a keyframe on opacity, because
+  the element is mounted conditionally - `powerOff` adds it and removes the
+  panel 300ms later - so the animation has to play from a defined start.
+  260ms against a 300ms timer: the screen finishes going dark before the panel
+  leaves, which is the whole effect. A faster fade would flash.
 */
-.chat-body {
-  display: grid;
-  grid-template-rows: 1fr;
-  transition: grid-template-rows 300ms cubic-bezier(0.4, 0, 0.2, 1);
+.phone-screen-off {
+  animation: phone-screen-off 260ms cubic-bezier(0.4, 0, 1, 1) forwards;
 }
-.chat-body--closed {
-  grid-template-rows: 0fr;
+
+@keyframes phone-screen-off {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
-.chat-body__inner {
-  min-height: 0;
-  overflow: hidden;
-  transition: opacity 200ms ease;
+
+/*
+  The frame's hardware, so the silhouette reads as a phone rather than as a
+  rounded rectangle: a hairline rim the colour of machined aluminium, and the
+  three side buttons sitting proud of it.
+
+  A hairline rather than a gradient. The rim in the reference image is a
+  metallic highlight, and a gradient would have been the obvious way to get it
+  — and also the one thing this design has ruled out since the first brief.
+  One lighter hairline says "edge" just as well at 17px as a gradient does.
+*/
+.phone-rim {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid #4a4a4e;
+  pointer-events: none;
 }
-.chat-body--closed .chat-body__inner {
-  opacity: 0;
+
+.phone-btn {
+  position: absolute;
+  width: 2px;
+  background: #4a4a4e;
+  border-radius: 1px;
+}
+
+.phone-btn--v1 {
+  left: -2px;
+  top: 21%;
+  height: 26px;
+}
+.phone-btn--v2 {
+  left: -2px;
+  top: 32%;
+  height: 26px;
+}
+.phone-btn--power {
+  right: -2px;
+  top: 26%;
+  height: 46px;
+}.phone-screen-off {
+  animation: phone-screen-off 260ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes phone-screen-off {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Messages arrive rather than blinking into existence. */
