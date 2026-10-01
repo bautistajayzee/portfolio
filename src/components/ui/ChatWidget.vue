@@ -1,5 +1,5 @@
 <script setup>
-import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import ChatAvatar from './ChatAvatar.vue'
 import { useClock } from '../../composables/useClock.js'
 import { chat, profile } from '../../data/portfolio.js'
@@ -23,9 +23,6 @@ import { chat, profile } from '../../data/portfolio.js'
  * · **Open and close are the same speed.** They used to differ, on the
  *   reasoning that a dismissal should get out of the way. See the note on
  *   `.chat-panel-enter-active` in the stylesheet for why that stopped being true.
- * · **Closing is faster than opening.** 180ms out, 260ms in. A shutdown the
- *   viewer did not ask for should get out of the way; an arrival they did ask
- *   for is worth watching.
  *
  * No `prefers-reduced-motion` gate, matching the scroll and the typewriter —
  * these are short opacity and transform changes, not movement through space.
@@ -268,10 +265,27 @@ function answerFor(question) {
  * at a readable per-character rate that is over three seconds of watching; past
  * the cap the rate rises instead, because an answer that takes four seconds to
  * finish stops reading as typing and starts reading as a stall.
+ *
+ * `entry` is created with `reactive()`, and that is load-bearing rather than
+ * decorative. This loop assigns `entry.text` on every frame. `messages` is a
+ * `ref`, so the array is a proxy and each element is wrapped when the template
+ * reads it - but assigning to the raw handle goes around the setter, so no
+ * dependency is notified and nothing re-renders. The answer then appeared in a
+ * single jump at the end, when `streaming.value = false` happened to trigger a
+ * render for its own reasons. Every sample taken during a reveal was either
+ * empty or the whole string.
  */
 function streamAnswer(entry, full) {
   const chars = [...full]
-  const duration = Math.min(MAX_STREAM_MS, Math.max(MIN_STREAM_MS, chars.length * PER_CHAR_S))
+  // The `* 1000` is the whole bug this line used to have. `PER_CHAR_S` is
+  // seconds per character, so `chars.length * PER_CHAR_S` comes out in seconds -
+  // 638 characters is 7.018, not 7018 - and was then compared against two
+  // bounds that are in milliseconds. `Math.max(400, 7.018)` is 400, so every
+  // single answer typed out in exactly `MIN_STREAM_MS` and `MAX_STREAM_MS` was
+  // dead code: a 638-character answer was delivered in 400ms, which is not
+  // typing, it is a jump cut. Measured before the fix, every reveal finished in
+  // 401ms regardless of length.
+  const duration = Math.min(MAX_STREAM_MS, Math.max(MIN_STREAM_MS, chars.length * PER_CHAR_S * 1000))
   const started = performance.now()
 
   const step = () => {
@@ -315,11 +329,11 @@ function ask(question) {
       // Phase one ends, phase two begins: the dots clear and the text starts.
       typing.value = false
 
-      const entry = {
+      const entry = reactive({
         id: question.id + messages.value.length,
         from: 'bot',
         text: '',
-      }
+      })
       messages.value = [...messages.value, entry].slice(-MAX_MESSAGES)
       scrollToLatest()
 
