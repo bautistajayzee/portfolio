@@ -479,7 +479,30 @@ onBeforeUnmount(() => {
   <div
     class="pointer-events-none fixed inset-x-0 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 px-3 lg:bottom-6 lg:left-auto lg:right-6 lg:px-0"
   >
-    <div class="mx-auto flex w-full max-w-[22rem] flex-col items-end lg:mx-0">
+    <!--
+      This column is the thing that has to fit the screen, not the panel.
+
+      It holds the panel *and* the launcher row, and the whole column is pinned
+      `bottom-0.75rem` (1.5rem from `lg`). So a panel that grows with its
+      conversation pushes the column upward past the top of the viewport, and
+      because the panel is the first child the part that goes missing is its own
+      header - avatar, name, and the close button:
+
+        667 x 375 landscape   column 391px   top -21   header 35% gone, close button off-screen
+        844 x 390 landscape   column 391px   top -13   header 20% gone, close button at y=3
+        740 x 360 landscape   column 377px   top -29   header 47% gone, close button off-screen
+
+      Capping the column is what fixes it, rather than capping the panel. The
+      panel's own available height depends on the launcher row's 48px, which is
+      a size this file would otherwise have to restate and keep in step; capping
+      the column lets the flex algorithm hand the panel exactly what is left
+      after the launcher, so the two cannot drift apart.
+
+      `justify-end` keeps the launcher at the bottom when the column does have
+      spare room, so the panel sits directly above it rather than the column
+      growing downward and pushing the launcher toward the edge.
+    -->
+    <div class="mx-auto flex max-h-[calc(100dvh-1.5rem)] w-full max-w-[22rem] flex-col items-end justify-end lg:mx-0">
     <Transition name="chat-panel">
       <!--
         Mobile-first sizing, and it is a `min()` rather than a media query
@@ -491,13 +514,35 @@ onBeforeUnmount(() => {
         The height is capped against `100dvh` rather than `100vh`. The layout
         viewport is taller than a phone screen once the browser's URL bar is in
         play, so a panel sized to it puts the questions below the fold.
+
+        The panel carries `max-h` as well, and it is the panel that needs it
+        rather than the log inside it. The log was already capped, but the panel
+        is bottom-anchored, so a capped log that still overflowed simply pushed
+        the *panel* upward and the panel was free to grow without limit. On a
+        phone held sideways that put its own header off the top of the screen:
+
+          667 x 375   panel top -21px   header 35% cut off   close button off-screen
+          844 x 390   panel top -13px   header 20% cut off   close button at y=3
+
+        Both are landscape phones, which is exactly where height is scarcest and
+        the conversation is longest at the same time. Worse, both still measured
+        as fitting while the panel was empty - the log's cap only bites once
+        there is enough text to reach it, so a check on the default state says
+        everything is fine and only a real exchange finds it.
+
+        `calc(100dvh - 1.5rem)` on the wrapper above is what stops the panel
+        running off the top; `min-h-0` here is what lets it actually give way
+        when that cap bites. A flex item defaults to `min-height: auto`, which
+        refuses to shrink below its content - so without this the log would keep
+        its full height, the wrapper cap would be exceeded anyway, and the header
+        would go off-screen exactly as before. The two have to be paired.
       -->
       <div
         v-if="open"
         ref="panelEl"
         role="dialog"
         aria-label="Ask about Jayzee"
-        class="chat-panel pointer-events-auto mb-3 flex w-[min(22rem,calc(100vw-1.5rem))] max-w-full flex-col overflow-hidden rounded-[14px] border border-line bg-paper shadow-[0_18px_44px_-26px_rgba(10,10,10,0.4)]"
+        class="chat-panel pointer-events-auto mb-3 flex min-h-0 w-[min(22rem,calc(100vw-1.5rem))] max-w-full flex-col overflow-hidden rounded-[14px] border border-line bg-paper shadow-[0_18px_44px_-26px_rgba(10,10,10,0.4)]"
       >
         <!-- header -->
         <header class="flex shrink-0 items-center gap-3 border-b border-line px-4 py-3">
@@ -548,10 +593,18 @@ onBeforeUnmount(() => {
           `max-h` rather than `flex-1`: the panel is not a fixed-height box, so
           with one short exchange it is as tall as the content and sits on the
           launcher rather than floating in a void above it.
+
+          `min-h-0` is load-bearing and was missing. A flex item defaults to
+          `min-height: auto`, which refuses to shrink below its content, so the
+          `max-h` above could never actually bite: the element grew to whatever
+          the conversation needed and the *panel* absorbed the difference. With
+          the panel now capped against the viewport (see its own class), this is
+          what lets the log give the space back instead of pushing the header off
+          the top of the screen.
         -->
         <div
           ref="logEl"
-          class="max-h-[min(19rem,46dvh)] overflow-y-auto overscroll-contain px-4 py-4"
+          class="min-h-0 max-h-[min(19rem,46dvh)] overflow-y-auto overscroll-contain px-4 py-4"
         >
           <TransitionGroup tag="div" name="chat-msg" class="flex flex-col gap-4">
             <!-- greeting -->
