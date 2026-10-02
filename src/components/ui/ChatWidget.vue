@@ -501,8 +501,28 @@ onBeforeUnmount(() => {
       `justify-end` keeps the launcher at the bottom when the column does have
       spare room, so the panel sits directly above it rather than the column
       growing downward and pushing the launcher toward the edge.
+
+      `ml-auto` rather than `mx-auto`, and the launcher belongs in the corner.
+      Centring the column put it in the middle of the page on every phone held
+      sideways. The column is capped at 22rem, so below that width the centring
+      is invisible; above it, the slack all landed on the right:
+
+        812 x 375 landscape   238px from the right edge, over the hero name
+        667 x 375 landscape   165px
+        926 x 428 landscape   295px
+        375 x 812 portrait     27px   correct, and unnoticed
+        1446 x 886 desktop     39px   correct
+
+      Portrait hid it completely - the column is 336-351px inside a 375-390px
+      viewport, so `mx-auto` had nothing to centre. Landscape has 200-290px of
+      slack and every pixel of it went to the right margin, which is where a
+      thumb is not. `ml-auto` puts the slack on the left, and the panel follows
+      the column so it lands bottom-right there too, matching portrait.
+
+      `lg:ml-0` because from `lg` the fixed box shrink-wraps to its content and
+      has no free space for an `auto` margin to consume.
     -->
-    <div class="mx-auto flex max-h-[calc(100dvh-1.5rem)] w-full max-w-[22rem] flex-col items-end justify-end lg:mx-0">
+    <div class="ml-auto flex max-h-[calc(100dvh-1.5rem)] w-full max-w-[22rem] flex-col items-end justify-end lg:ml-0">
     <Transition name="chat-panel">
       <!--
         Mobile-first sizing, and it is a `min()` rather than a media query
