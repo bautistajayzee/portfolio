@@ -114,8 +114,12 @@ onBeforeUnmount(() => {
         <!-- the photograph -->
         <div class="flex justify-center md:col-start-1 md:col-end-6">
           <div ref="portrait" class="w-full max-w-[17rem] md:max-w-none">
-            <!-- the only eager, high-priority image on the page -->
-            <ProfileImage priority />
+            <!--
+          The only eager, high-priority image on the page. `pixel` paints the
+          PixelCard grid behind the photograph here and nowhere else, so the
+          effect reads as the one moment on the page that answers the cursor.
+        -->
+            <ProfileImage priority pixel />
           </div>
         </div>
 

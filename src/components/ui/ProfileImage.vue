@@ -1,5 +1,6 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import PixelCard from './PixelCard.vue'
 import { profile } from '../../data/portfolio.js'
 
 /**
@@ -46,6 +47,12 @@ const props = defineProps({
    * competing with the webfonts for it.
    */
   priority: { type: Boolean, default: false },
+  /**
+   * Paints the PixelCard field behind the photograph. Only the hero sets it;
+   * the smaller copy at the foot of Contact stays plain, so the effect marks one
+   * place on the page rather than becoming a texture.
+   */
+  pixel: { type: Boolean, default: false },
 })
 
 /** Maximum rotation in degrees, at the corner of the frame. */
@@ -93,10 +100,93 @@ function onPointerLeave() {
   tiltX.value = 0
   tiltY.value = 0
 }
+
+/*
+  The pixel field's palette, taken from the theme rather than hard-coded.
+
+  The original component ships four fixed palettes, one per variant. On this site
+  that would put a constant blue field behind a photograph that otherwise
+  inherits every colour from `--c-*`, and it would look pasted on in the light
+  theme.
+
+  So the colours are read from the live custom properties, which means the field
+  is built from the same neutral ramp the rest of the page uses and flips with
+  the theme — `getComputedStyle` is re-read on every `html.dark` change rather
+  than sampled once at mount, because the sample taken at mount is whichever
+  theme happened to be active first.
+
+  `var()` is passed as a literal string rather than a resolved colour because the
+  canvas needs concrete values; the read happens here instead.
+*/
+const prefersDark = ref(false)
+
+function readPalette() {
+  if (typeof window === 'undefined') return
+  const cs = getComputedStyle(document.documentElement)
+  const pick = (name, fallback) => (cs.getPropertyValue(name) || '').trim() || fallback
+
+  // The two mid neutrals plus the accent, weighted towards the accent.
+  //
+  // `n-200` is deliberately left out. It is the one member of the ramp that is
+  // invisible in both themes for the same reason: against light paper it is a
+  // near-white, and against dark paper it is a near-black. Sampling from it
+  // spends a third of the grid on a colour that cannot be seen.
+  //
+  // The accent is listed three times because `initPixels` picks at random from
+  // this list, so repeats are weight — that is how a field ends up reading as
+  // the page's colour with the brand in it rather than as a grey texture.
+  const ramp = [pick('--c-n-300', '#7a746b'), pick('--c-n-400', '#787269')]
+  const accent = pick('--c-accent', '#116e4d')
+  const colors = [...ramp, accent, accent, accent].join(',')
+  pixelColors.value = colors
+}
+
+const pixelColors = ref('')
+
+let themeObserver = null
+
+/** Track the theme so a switch rebuilds the grid with the other ramp. */
+const darkQuery =
+  typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)') : null
+
+function syncTheme() {
+  const dark = document.documentElement.classList.contains('dark')
+  if (dark !== prefersDark.value) {
+    prefersDark.value = dark
+    readPalette()
+  }
+}
+
+if (typeof window !== 'undefined') {
+  onMounted(() => {
+    readPalette()
+    // `MutationObserver` on the class rather than a second `matchMedia` listener,
+    // because the theme can be set explicitly from the switch as well as
+    // following the system — this is the one signal that covers all three of
+    // light, dark and system, whichever route got us there.
+    themeObserver = new MutationObserver(syncTheme)
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
+
+    darkQuery?.addEventListener('change', syncTheme)
+  })
+
+  onBeforeUnmount(() => {
+    themeObserver?.disconnect()
+    darkQuery?.removeEventListener('change', syncTheme)
+  })
+}
 </script>
 
 <template>
-  <figure class="w-full" :style="{ maxWidth: props.size, perspective: '900px' }">
+  <figure class="relative w-full" :style="{ maxWidth: props.size, perspective: '900px' }">
+    <!--
+      The pixel field lives inside this frame rather than behind the whole
+      component, so the grid tilts with the photograph instead of staying flat
+      while the image leans away from the cursor.
+    -->
     <div
       class="transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform"
       :class="props.tilt ? 'cursor-default' : ''"
@@ -105,7 +195,16 @@ function onPointerLeave() {
       @pointerleave="onPointerLeave"
       @pointercancel="onPointerLeave"
     >
-      <div class="aspect-square w-full overflow-hidden border border-line bg-n-100">
+      <!--
+        A `relative` wrapper sized to the photograph's box and nothing else.
+
+        The frame is taller than the photograph because of the accent rule
+        beneath it, so anchoring the field to the frame left a strip of grid
+        hanging below the picture. Measured, the field now matches the photo box
+        exactly — 323.96 x 316.63 for both.
+      -->
+      <div class="relative">
+        <div class="relative aspect-square w-full overflow-hidden border border-line bg-n-100">
         <!--
           This is the largest thing on the first screen, so it is the element a
           reader's eye lands on and almost certainly the LCP candidate. Two files
@@ -175,6 +274,35 @@ function onPointerLeave() {
         >
           JG
         </span>
+
+          <!--
+            The pixel field, behind the photograph and inside its own square.
+
+            The photograph is a cut-out, not a rectangle: `photo.webp` carries a
+            real alpha channel (mean 142, range 0-255), so the area around the
+            subject is genuinely transparent. That is what makes this effect
+            possible at all — a grid behind an opaque image draws nothing
+            anybody could see, and this one would have been invisible.
+
+            `-z-10` inside the photograph's box is the whole trick, and its
+            position in the stacking order matters in three parts: the box paints
+            its own `bg-n-100` first, a negative-z child paints next, and the
+            in-flow `<img>` paints last. So the grid sits above the placeholder
+            background, below the portrait, and shows through every transparent
+            pixel of it.
+
+            Kept inside the border and clipped by the box's `overflow-hidden`,
+            and `pointer-events-none` so it never swallows the hover that drives
+            it or the pointer that tilts the photograph.
+          -->
+          <div
+            v-if="props.pixel && pixelColors"
+            class="pixel-field pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+            aria-hidden="true"
+          >
+            <PixelCard :colors="pixelColors" :gap="6" :speed="55" />
+          </div>
+        </div>
       </div>
 
       <!-- the single accent mark -->
