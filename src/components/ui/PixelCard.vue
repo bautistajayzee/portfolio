@@ -59,9 +59,16 @@ class Pixel {
     this.speed = this.getRandomValue(0.1, 0.9) * speed
     this.size = 0
     this.sizeStep = Math.random() * 0.4
-    // Scaled off `maxSizeInteger` rather than hard-coded, so a denser field can
-    // be asked for without the dots turning into solid blocks.
-    this.minSize = maxSizeInteger * 0.25
+    // The dot grows to `maxSizeInteger` and stays there.
+    //
+    // The original oscillates the size between a small `minSize` and the cap, and
+    // `fillRect` on a fractional size antialiases, so for most of every cycle the
+    // dot composites at a fraction of its colour and the field reads as a ghost.
+    // Measured on this site: the canvas held tens of thousands of pixels with
+    // non-zero alpha and almost none of them were legible. Pinning the floor to
+    // the cap makes every square land on whole pixels at full colour, which is
+    // what the reference grid actually looks like.
+    this.minSize = maxSizeInteger
     this.maxSizeInteger = maxSizeInteger
     this.maxSize = this.getRandomValue(this.minSize, this.maxSizeInteger)
     this.delay = delay

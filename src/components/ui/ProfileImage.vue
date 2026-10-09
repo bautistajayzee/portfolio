@@ -204,7 +204,21 @@ if (typeof window !== 'undefined') {
         exactly — 323.96 x 316.63 for both.
       -->
       <div class="relative">
-        <div class="relative aspect-square w-full overflow-hidden border border-line bg-n-100">
+        <!--
+          `isolate` is load-bearing, not decoration.
+
+          Without it the field's `-z-10` escaped upwards and painted *underneath*
+          this box's own `bg-n-100`, because `position: relative` with
+          `z-index: auto` does not form a stacking context — the nearest one is
+          the tilting frame further up. Measured with 41,677 pixels lit on the
+          canvas and nothing whatsoever visible on screen.
+
+          `isolation: isolate` makes this box its own stacking context, so the
+          negative-z field now paints above the placeholder background and below
+          the in-flow `<img>`, which is exactly the one slot that shows through
+          the cut-out.
+        -->
+        <div class="relative isolate aspect-square w-full overflow-hidden border border-line bg-n-100">
         <!--
           This is the largest thing on the first screen, so it is the element a
           reader's eye lands on and almost certainly the LCP candidate. Two files
@@ -297,7 +311,7 @@ if (typeof window !== 'undefined') {
           -->
           <div
             v-if="props.pixel && pixelColors"
-            class="pixel-field pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+            class="pixel-field pointer-events-none absolute inset-0 z-10 overflow-hidden"
             aria-hidden="true"
           >
             <!--
