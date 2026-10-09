@@ -33,7 +33,7 @@ const enlarged = ref(false)
       </div>
 
       <!-- title + categories -->
-      <div class="md:col-span-4">
+      <div class="md:col-span-3">
         <h3 class="text-[clamp(1.25rem,2.6vw,1.75rem)] font-medium leading-[1.15] tracking-[-0.024em]">
           {{ project.title }}
         </h3>
@@ -51,7 +51,7 @@ const enlarged = ref(false)
       </p>
 
       <!--
-        The affordances, side by side and right-aligned.
+        The affordances, stacked and right-aligned.
 
         These used to be mutually exclusive - `v-if` on the screenshot button and
         `v-else-if` on the link - on the assumption that a row has a screenshot
@@ -63,8 +63,24 @@ const enlarged = ref(false)
         So they are independent now. A screenshot shows what was made; a link
         opens the file it was made in. Which of the two a row has is decided by
         the data, and either may be absent.
+
+        They are stacked rather than set side by side, and that is a fix rather
+        than a preference. The column is two of twelve and measures 120px at a
+        1296px viewport, while "View" and "View in Figma" are `whitespace-nowrap`
+        and need 206px between them. Laid out in a row with `justify-end` the
+        overflow goes leftward, because a right-aligned line that is too long
+        grows to the left — and it landed on top of the description, whose right
+        edge sat 54px further right than the "View" link's left edge.
+
+        An earlier note here claimed the surplus "eats gutter rather than
+        colliding with the description". That was true of a single link, which
+        needs about 10px more than the column has and so reaches into the 32px
+        gap. Two links need 86px more than that, and the gap ran out.
+
+        Stacked, the widest label is what overruns, and only by that 10px. It
+        reaches into the gutter and stops well short of the text.
       -->
-      <div class="flex flex-wrap items-center justify-start gap-x-5 gap-y-1 md:col-span-2 md:flex-nowrap md:justify-end">
+      <div class="flex flex-col items-start gap-y-2 md:col-span-3 md:items-end">
         <button
           v-if="project.preview"
           type="button"
@@ -98,18 +114,21 @@ const enlarged = ref(false)
         >
           <!--
             `linkLabel` lets the data name the destination, so "View in Figma"
-            is set once per project rather than taught to this component. The
-            button that opens a screenshot keeps the plain "View", which is
-            enough there: the thing being viewed is right there in the row.
+            and "Visit site" are set once per project rather than taught to this
+            component. The button that opens a screenshot keeps the plain "View",
+            which is enough there: the thing being viewed is right there in the
+            row.
 
-            Beside it rather than instead of it - see the note on the wrapper.
+            Alongside rather than instead of it - see the note on the wrapper.
 
             `whitespace-nowrap` is load-bearing. The text measures 106px and the
             column is 120px, but with the 8px gap and the 16px icon the whole
             thing needs 130px — so it wrapped into "View / in / Figma" stacked
-            vertically, 171px tall against the 30px it should be. The column is
-            right-aligned with a 32px gutter beside it, so letting the label run
-            10px long eats gutter rather than colliding with the description.
+            vertically, 171px tall against the 30px it should be.
+
+            `mt-1 md:mt-2` aligns the first of the two with the row's baseline;
+            with the wrapper now stacking them, the second picks up the same
+            margin and lands 30px lower, which is what separates them.
 
             Deliberately no `aria-label`. Adding one that named the project
             would put a different string in the accessible name than the one on

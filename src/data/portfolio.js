@@ -404,11 +404,14 @@ export const projects = [
     year: '2026',
     description:
       'A self-hosted course platform for IT material, built on Laravel. Courses break into modules and lessons carrying text, code, PDF, and video; students work through them, sit the quiz at the end, and a certificate unlocks on completion. Free courses are open to anyone who enrolls, paid ones run through PayMongo.',
-    href: null,
+    // The one project that is genuinely live, so the row carries both affordances:
+    // the screenshot shows the landing page, the link opens the site itself.
+    href: 'https://it-learning-hub-three.vercel.app/',
     preview: '/IT_Learning_Hub.webp',
     previewAlt:
-      'The IT Learning Hub landing page in dark mode. A globe mark and title sit above a theme toggle and menu button. The hero reads “Learn IT by building the skills the work asks for” over text about courses in information technology, programming, web development and cybersecurity, with Browse courses and Sign in buttons, and a row of four figures: 2 free courses, 3 paid courses, 62 lessons, and 17 quizzes. Course cards continue below.',
+      'The IT Learning Hub landing page in dark mode. A green logo mark and the title sit in a rounded bar with a theme toggle, Sign in and Get Started. Below, a badge reads “Learn at your own pace” over a hero reading “Learn IT skills through structured, practical courses.” with Explore courses and Get Started buttons and a note that browsing is open to everyone. A carousel of course cards runs beside it, and a row of three figures reads 6 courses, 18 modules, 54 lessons.',
     previewCaption: 'IT Learning Hub — public landing page',
+    linkLabel: 'Visit site',
   },
   {
     title: 'Komiks',

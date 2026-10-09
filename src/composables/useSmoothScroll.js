@@ -100,6 +100,26 @@ const topInset = () =>
   parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0
 
 /**
+ * Put the scrollbar at an exact offset, with no animation of its own.
+ *
+ * `behavior: 'instant'` is the whole point and it is not cosmetic. `html` carries
+ * `scroll-behavior: smooth`, and that governs `window.scrollTo` too — so a plain
+ * two-argument `scrollTo` asks the browser to *animate to the target*, and this
+ * tween calls it once per frame. Every frame cancelled the native animation the
+ * previous frame had started and eased toward a new one instead, so the two
+ * easings fought and the page barely moved: measured on the jump to #projects,
+ * the scroll ran at 0 px/ms for the first 660ms and then went 2, 5, 12 — nothing
+ * for most of a second, then a rush. That is the "slow, then suddenly fast"
+ * feeling, and it is worst on the devices least able to afford the churn.
+ *
+ * `instant` overrides the CSS value, so the only easing in play is the one
+ * written above and every frame is a plain position set.
+ */
+function setScrollY(y) {
+  window.scrollTo({ top: y, left: 0, behavior: 'instant' })
+}
+
+/**
  * Scroll to a position, smoothly if we can and instantly if we cannot.
  *
  * The safety net is the important part. `preventDefault()` has already stopped
@@ -125,7 +145,7 @@ function animateScrollTo(targetY) {
   const step = (now) => {
     started = true
     const t = Math.min((now - start) / DURATION, 1)
-    window.scrollTo(0, startY + distance * easeOutQuint(t))
+    setScrollY(startY + distance * easeOutQuint(t))
     if (t < 1) frame = requestAnimationFrame(step)
   }
 
@@ -133,7 +153,7 @@ function animateScrollTo(targetY) {
 
   guard = window.setTimeout(() => {
     // No frame arrived, so the tween is not going to run. Land on the target.
-    if (!started) window.scrollTo(0, targetY)
+    if (!started) setScrollY(targetY)
   }, 120)
 }
 

@@ -82,12 +82,15 @@ onBeforeUnmount(() => {
           A document renders in an iframe so the browser's built-in PDF viewer
           handles it. No viewer library, no extra bytes — and because the whole
           dialog is behind `v-if`, the file is not requested until it is opened.
+
+          The frame is sized to the document rather than to the space available —
+          see `.doc-frame` below for why that is the whole fix.
         -->
         <iframe
           v-if="isDocument()"
           :src="src"
           :title="alt || caption || 'Document'"
-          class="h-[78vh] w-full rounded-[4px] border border-[#2c2a27] bg-[#1a1a1a]"
+          class="doc-frame"
         ></iframe>
 
         <img
@@ -171,6 +174,50 @@ onBeforeUnmount(() => {
 
 .lightbox-hint {
   bottom: max(1rem, calc(env(safe-area-inset-bottom) + 0.25rem));
+}
+
+/*
+  Why the document frame is sized to the page instead of to the space available.
+
+  The resume is A4 portrait — the file's own MediaBox is 595.5 x 842.25pt, a
+  ratio of 1 : 1.4146 — and a browser opens a PDF inside an iframe at
+  fit-to-width.
+
+  Handed the box this lightbox used to give it, 1024px wide and 78vh tall, that
+  is the wrong shape for the document and fit-to-width had nowhere to go. Measured
+  at a 1296x890 viewport: the viewer opened at 88%, rendered the page 988px tall,
+  and 646px of it was visible. The result was a one-page resume arriving zoomed
+  in and cropped below "EDUCATION", with the rest of the page locked inside the
+  modal behind a scrollbar — which is the whole complaint.
+
+  Giving the frame the document's own shape makes fit-to-width and fit-to-page
+  agree on the same scale, so the entire page is on screen whichever of the two
+  the viewer decides to use. The width is the height less a toolbar's worth of
+  room, because the viewer's toolbar is painted inside this box and would
+  otherwise take the bottom of the page with it.
+
+  `min(100%, ...)` keeps the frame inside the figure on a phone, where there is
+  less width than the document would like. The page then fits the width instead
+  and simply has more height to spare.
+
+  `100vh` first, `100dvh` where it is supported, for the same reason as the nav:
+  `vh` is the viewport with its browser chrome retracted, which on a phone can
+  push the bottom of the frame off the screen.
+*/
+.doc-frame {
+  width: min(100%, calc((min(78vh, 820px) - 5.5rem) * 0.7071));
+  height: min(78vh, 820px);
+  margin-inline: auto;
+  border: 1px solid #2c2a27;
+  border-radius: 4px;
+  background: #1a1a1a;
+}
+
+@supports (height: 1dvh) {
+  .doc-frame {
+    width: min(100%, calc((min(78dvh, 820px) - 5.5rem) * 0.7071));
+    height: min(78dvh, 820px);
+  }
 }
 
 /* No Esc key where there is no mouse. See the note on the element. */
