@@ -272,6 +272,23 @@ onUnmounted(() => {
   resizeObserver?.disconnect()
   if (animationId !== null) cancelAnimationFrame(animationId)
 })
+
+/*
+  Driven from outside, because the card cannot listen for itself.
+
+  Its root is `pointer-events-none` — it has to be, or the grid would cover the
+  photograph and swallow the pointer that tilts it. But an element with
+  `pointer-events: none` is never a hit-test target, so `mouseenter` and
+  `mouseleave` never fire on it in a real browser. The effect ran perfectly when
+  the events were dispatched synthetically and did nothing at all for an actual
+  cursor, which is the worst kind of bug: it looks verified.
+
+  So the parent listens on something the pointer *can* reach and calls in here.
+*/
+defineExpose({
+  appear: () => handleAnimation('appear'),
+  disappear: () => handleAnimation('disappear'),
+})
 </script>
 
 <template>

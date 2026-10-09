@@ -102,6 +102,27 @@ function onPointerLeave() {
 }
 
 /*
+  Hover, forwarded to the field.
+
+  The card cannot listen for itself — `pointer-events: none` puts it outside hit
+  testing entirely — so these sit on the photograph's box, which the pointer
+  really does reach, and call the card's exposed methods.
+
+  `mouseenter`/`mouseleave` rather than `pointerenter`: those do not fire for a
+  finger, and this is a cursor effect. A tap that is scrolling the page must not
+  set it off.
+*/
+const pixelCard = ref(null)
+
+function onPixelEnter() {
+  pixelCard.value?.appear()
+}
+
+function onPixelLeave() {
+  pixelCard.value?.disappear()
+}
+
+/*
   The pixel field's palette, taken from the theme rather than hard-coded.
 
   The original component ships four fixed palettes, one per variant. On this site
@@ -218,7 +239,20 @@ if (typeof window !== 'undefined') {
           the in-flow `<img>`, which is exactly the one slot that shows through
           the cut-out.
         -->
-        <div class="relative isolate aspect-square w-full overflow-hidden border border-line bg-n-100">
+        <!--
+          The hover lives here, on the photograph's own box, not on the field.
+
+          The field is `pointer-events-none` so it cannot block this box's tilt,
+          which also means it can never receive a pointer event itself. Listening
+          on it therefore did nothing for a real cursor while looking perfectly
+          fine under synthetic events. The box is the thing the pointer actually
+          lands on, so the box is what decides.
+        -->
+        <div
+          class="relative isolate aspect-square w-full overflow-hidden border border-line bg-n-100"
+          @mouseenter="onPixelEnter"
+          @mouseleave="onPixelLeave"
+        >
         <!--
           This is the largest thing on the first screen, so it is the element a
           reader's eye lands on and almost certainly the LCP candidate. Two files
@@ -336,7 +370,7 @@ if (typeof window !== 'undefined') {
               never focusable, so there was no keyboard route to this effect to
               begin with.
             -->
-            <PixelCard :colors="pixelColors" :gap="4" :dot-size="3" :speed="55" no-focus />
+            <PixelCard ref="pixelCard" :colors="pixelColors" :gap="4" :dot-size="3" :speed="55" no-focus />
           </div>
         </div>
       </div>
