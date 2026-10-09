@@ -59,16 +59,15 @@ class Pixel {
     this.speed = this.getRandomValue(0.1, 0.9) * speed
     this.size = 0
     this.sizeStep = Math.random() * 0.4
-    // The dot grows to `maxSizeInteger` and stays there.
+    // The upstream ratio: 0.5 against a cap of 2, so a quarter.
     //
-    // The original oscillates the size between a small `minSize` and the cap, and
-    // `fillRect` on a fractional size antialiases, so for most of every cycle the
-    // dot composites at a fraction of its colour and the field reads as a ghost.
-    // Measured on this site: the canvas held tens of thousands of pixels with
-    // non-zero alpha and almost none of them were legible. Pinning the floor to
-    // the cap makes every square land on whole pixels at full colour, which is
-    // what the reference grid actually looks like.
-    this.minSize = maxSizeInteger
+    // This was pinned to the cap in an earlier pass, to stop the dots
+    // antialiasing down to near-invisible specks, and that fixed the visibility
+    // and destroyed the effect. Growing from small and pulsing is the whole
+    // character of the thing; a field of static squares is a different component.
+    // Visibility is solved with colour and contrast instead — see the palette in
+    // `ProfileImage.vue`.
+    this.minSize = maxSizeInteger * 0.25
     this.maxSizeInteger = maxSizeInteger
     this.maxSize = this.getRandomValue(this.minSize, this.maxSizeInteger)
     this.delay = delay

@@ -143,21 +143,31 @@ const prefersDark = ref(false)
 
 function readPalette() {
   if (typeof window === 'undefined') return
+  // Read the live theme first. `prefersDark` starts as `false`, so without this
+  // the very first paint on a dark site would pick the light palette and only
+  // correct itself if the theme happened to change afterwards.
+  prefersDark.value = document.documentElement.classList.contains('dark')
+
   const cs = getComputedStyle(document.documentElement)
   const pick = (name, fallback) => (cs.getPropertyValue(name) || '').trim() || fallback
 
-  // The two mid neutrals plus the accent, weighted towards the accent.
+  // Brightness is chosen per theme, and it has to be.
   //
-  // `n-200` is deliberately left out. It is the one member of the ramp that is
-  // invisible in both themes for the same reason: against light paper it is a
-  // near-white, and against dark paper it is a near-black. Sampling from it
-  // spends a third of the grid on a colour that cannot be seen.
+  // Upstream ships near-whites — #f8fafc, #f1f5f9, #cbd5e1 — which is what makes
+  // its grid read on a dark card. The first pass here used `n-300`/`n-400`, the
+  // two dimmest legibles on the ramp, on the theory that quiet suited the page.
+  // It did not: against a near-black photograph a dim dot and no dot are the same
+  // thing, and the field vanished.
   //
-  // The accent is listed three times because `initPixels` picks at random from
-  // this list, so repeats are weight — that is how a field ends up reading as
-  // the page's colour with the brand in it rather than as a grey texture.
-  const ramp = [pick('--c-n-300', '#7a746b'), pick('--c-n-400', '#787269')]
-  const accent = pick('--c-accent', '#116e4d')
+  // So each theme takes the part of its own ramp that contrasts with its own
+  // paper — the upper steps in dark, the lower in light — plus the accent. The
+  // accent is listed three times because `initPixels` samples this list at
+  // random, so a repeat is weight.
+  const dark = prefersDark.value
+  const ramp = dark
+    ? [pick('--c-n-700', '#ccd0d6'), pick('--c-n-600', '#b3b8bf')]
+    : [pick('--c-n-600', '#5c5852'), pick('--c-n-500', '#6f6a63')]
+  const accent = pick('--c-accent', dark ? '#93e9be' : '#116e4d')
   const colors = [...ramp, accent, accent, accent].join(',')
   pixelColors.value = colors
 }
@@ -370,7 +380,17 @@ if (typeof window !== 'undefined') {
               never focusable, so there was no keyboard route to this effect to
               begin with.
             -->
-            <PixelCard ref="pixelCard" :colors="pixelColors" :gap="4" :dot-size="3" :speed="55" no-focus />
+            <!--
+              The upstream default variant's own numbers: gap 5, a 2px cap.
+
+              An earlier pass used gap 4 and a 3px cap to chase density, paired
+              with dim neutrals, and the two mistakes cancelled into an invisible
+              field. Density was never the problem — contrast was. With the
+              palette now taking the bright end of the ramp in dark mode, the
+              upstream numbers read correctly and the dots keep the grow-and-pulse
+              movement that makes the effect what it is.
+            -->
+            <PixelCard ref="pixelCard" :colors="pixelColors" :gap="5" :dot-size="2" :speed="55" no-focus />
           </div>
         </div>
       </div>
