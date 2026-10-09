@@ -39,10 +39,17 @@ const props = defineProps({
   colors: { type: String, default: '' },
   noFocus: { type: Boolean, default: false },
   className: { type: String, default: '' },
+  /**
+   * Largest a square may grow, in pixels. The original hard-codes 2, which reads
+   * as a sparse scattering at any real gap; 3 with a gap of 4 is the density in
+   * the reference the hero uses. `minSize` is derived from this rather than
+   * hard-coded, so the shimmer keeps its range at any size.
+   */
+  dotSize: { type: Number, default: 2 },
 })
 
 class Pixel {
-  constructor(canvas, context, x, y, color, speed, delay) {
+  constructor(canvas, context, x, y, color, speed, delay, maxSizeInteger) {
     this.width = canvas.width
     this.height = canvas.height
     this.ctx = context
@@ -52,8 +59,10 @@ class Pixel {
     this.speed = this.getRandomValue(0.1, 0.9) * speed
     this.size = 0
     this.sizeStep = Math.random() * 0.4
-    this.minSize = 0.5
-    this.maxSizeInteger = 2
+    // Scaled off `maxSizeInteger` rather than hard-coded, so a denser field can
+    // be asked for without the dots turning into solid blocks.
+    this.minSize = maxSizeInteger * 0.25
+    this.maxSizeInteger = maxSizeInteger
     this.maxSize = this.getRandomValue(this.minSize, this.maxSizeInteger)
     this.delay = delay
     this.counter = 0
@@ -172,7 +181,7 @@ function initPixels() {
       const distance = Math.sqrt(dx * dx + dy * dy)
       const delay = reducedMotion ? 0 : distance
 
-      next.push(new Pixel(canvasRef.value, ctx, x, y, color, speed, delay))
+      next.push(new Pixel(canvasRef.value, ctx, x, y, color, speed, delay, props.dotSize))
     }
   }
 
@@ -242,7 +251,7 @@ const onBlur = (e) => {
   inline getter is equivalent here — Vue compares the result — and has no ordering
   constraint.
 */
-watch([finalGap, finalSpeed, () => props.colors, finalNoFocus], () => {
+watch([finalGap, finalSpeed, () => props.colors, () => props.dotSize, finalNoFocus], () => {
   initPixels()
 })
 

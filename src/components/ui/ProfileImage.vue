@@ -300,7 +300,14 @@ if (typeof window !== 'undefined') {
             class="pixel-field pointer-events-none absolute inset-0 -z-10 overflow-hidden"
             aria-hidden="true"
           >
-            <PixelCard :colors="pixelColors" :gap="6" :speed="55" />
+            <!--
+              `gap="4"` and `dot-size="3"` rather than the upstream defaults of
+              5 and 2. At those the field reads as a sparse scatter of 1px specks
+              and all of it disappears against the dark studio backdrop in the
+              photograph; at these it is the dense, evenly-lit grid the reference
+              shows, legible everywhere the cut-out is transparent.
+            -->
+            <PixelCard :colors="pixelColors" :gap="4" :dot-size="3" :speed="55" />
           </div>
         </div>
       </div>
