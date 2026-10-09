@@ -403,7 +403,7 @@ export const projects = [
     meta: ['Learning Platform', 'Vue · TypeScript · Supabase'],
     year: '2026',
     description:
-      'A role-based learning platform for IT courses — student, instructor and admin behind a public catalogue. Categories hold courses, courses break down into modules and lessons with their own materials, and students enrol, work through them, sit timed quizzes and collect certificates. Instructors author and grade; admins manage users, pricing and platform-wide analytics. Access is enforced by Row Level Security in the database rather than by the interface, and paid courses check out through PayMongo in pesos.',
+      'An online learning platform for IT skills. Courses break down into modules and lessons with their own materials; students enrol and work through them, sit quizzes and earn a certificate, while instructors write the material and mark the work. Free courses are open to anyone, paid ones go through checkout.',
     // The one project that is genuinely live, so the row carries both affordances:
     // the screenshot shows the landing page, the link opens the site itself.
     href: 'https://it-learning-hub-three.vercel.app/',
