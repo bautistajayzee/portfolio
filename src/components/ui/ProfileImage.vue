@@ -311,7 +311,7 @@ if (typeof window !== 'undefined') {
           -->
           <div
             v-if="props.pixel && pixelColors"
-            class="pixel-field pointer-events-none absolute inset-0 z-10 overflow-hidden"
+            class="pixel-field pointer-events-none absolute inset-0 -z-10 overflow-hidden"
             aria-hidden="true"
           >
             <!--
