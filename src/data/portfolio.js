@@ -403,7 +403,7 @@ export const projects = [
     meta: ['Learning Platform', 'Vue · TypeScript · Supabase'],
     year: '2026',
     description:
-      'An online learning platform for IT skills. Courses break down into modules and lessons with their own materials; students enrol and work through them, sit quizzes and earn a certificate, while instructors write the material and mark the work. Free courses are open to anyone, paid ones go through checkout.',
+      'An online learning platform for IT skills. Courses break down into modules and lessons with their own materials; students enroll and work through them, sit quizzes and earn a certificate, while instructors write the material and mark the work. Free courses are open to anyone, paid ones go through checkout.',
     // The one project that is genuinely live, so the row carries both affordances:
     // the screenshot shows the landing page, the link opens the site itself.
     href: 'https://it-learning-hub-three.vercel.app/',
@@ -501,7 +501,7 @@ export const chat = [
     id: 'projects',
     chip: 'My Projects',
     answer:
-      'Six so far. This portfolio is Vue and Tailwind. Vegan Brew is a point-of-sale system in PHP and MySQL, and the SHS Enrollment System carries applicants through to fees. IT Learning Hub is a Laravel platform with lessons and quizzes. Komiks and GoPeso are UI/UX design rather than code — both Figma files are public, so you can open them.',
+      'Six so far. This portfolio is Vue and Tailwind. Vegan Brew is a point-of-sale system in PHP and MySQL, and the SHS Enrollment System carries applicants through to fees. IT Learning Hub is a Vue and Supabase learning platform with lessons and quizzes. Komiks and GoPeso are UI/UX design rather than code — both Figma files are public, so you can open them.',
   },
   {
     id: 'contact',
