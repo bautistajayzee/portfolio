@@ -321,7 +321,22 @@ if (typeof window !== 'undefined') {
               photograph; at these it is the dense, evenly-lit grid the reference
               shows, legible everywhere the cut-out is transparent.
             -->
-            <PixelCard :colors="pixelColors" :gap="4" :dot-size="3" :speed="55" />
+            <!--
+              `no-focus` is required, not a preference.
+
+              The card's root carries `aria-hidden="true"` — it is decoration —
+              but by default it also carries `tabindex="0"` and focus handlers, so
+              it put a focusable element inside an aria-hidden subtree. Lighthouse
+              caught that as `aria-hidden-focus` and dropped Accessibility to
+              0.96.
+
+              The field answers the pointer, and pointer response is not something
+              a keyboard user can reach anyway, so `no-focus` removes the tab stop
+              and the focus handlers together. Nothing is lost: the photograph was
+              never focusable, so there was no keyboard route to this effect to
+              begin with.
+            -->
+            <PixelCard :colors="pixelColors" :gap="4" :dot-size="3" :speed="55" no-focus />
           </div>
         </div>
       </div>
