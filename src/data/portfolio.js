@@ -400,10 +400,10 @@ export const projects = [
   },
   {
     title: 'IT Learning Hub',
-    meta: ['Learning Platform', 'Laravel · MySQL'],
+    meta: ['Learning Platform', 'Vue · TypeScript · Supabase'],
     year: '2026',
     description:
-      'A self-hosted course platform for IT material, built on Laravel. Courses break into modules and lessons carrying text, code, PDF, and video; students work through them, sit the quiz at the end, and a certificate unlocks on completion. Free courses are open to anyone who enrolls, paid ones run through PayMongo.',
+      'A role-based learning platform for IT courses — student, instructor and admin behind a public catalogue. Categories hold courses, courses break down into modules and lessons with their own materials, and students enrol, work through them, sit timed quizzes and collect certificates. Instructors author and grade; admins manage users, pricing and platform-wide analytics. Access is enforced by Row Level Security in the database rather than by the interface, and paid courses check out through PayMongo in pesos.',
     // The one project that is genuinely live, so the row carries both affordances:
     // the screenshot shows the landing page, the link opens the site itself.
     href: 'https://it-learning-hub-three.vercel.app/',
