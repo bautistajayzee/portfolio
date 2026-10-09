@@ -93,14 +93,24 @@ function onChipPointerDown(event) {
   const el = chipRow.value
   if (!el) return
 
-  chipDrag = { id: event.pointerId, startX: event.clientX, startScroll: el.scrollLeft, moved: 0 }
-  // Capture is a nicety — it keeps the drag alive if the pointer leaves the row.
-  // A throw here must not abort the handler and leave a drag half-armed.
-  try {
-    el.setPointerCapture?.(event.pointerId)
-  } catch {
-    /* no active pointer with that id — carry on without capture */
-  }
+  chipDrag = { id: event.pointerId, startX: event.clientX, startScroll: el.scrollLeft, moved: 0, captured: false }
+  /*
+    No `setPointerCapture` here, and that is the whole fix.
+
+    It used to be called on pointerdown, before anything had moved. Capturing
+    does not just retarget the pointer events that follow — per the Pointer
+    Events spec it retargets the compatibility mouse events too, so `click` was
+    delivered to the row instead of to the chip underneath the cursor. Every
+    ordinary click on a question therefore hit nothing at all, and the chip's own
+    `@click` never ran.
+
+    It passed every test because a synthetically dispatched click carries its own
+    target and ignores capture completely, so it reached the button no matter
+    what the pointer had done. Only a real cursor exposed it.
+
+    Capture is now taken in `onChipPointerMove`, once the pointer has travelled
+    far enough to be a drag — which is the only case that needs it.
+  */
 }
 
 function onChipPointerMove(event) {
@@ -113,6 +123,16 @@ function onChipPointerMove(event) {
   // A couple of pixels of jitter is a click, not a drag. Only commit past that,
   // so a plain click on a chip never leaves the row looking grabbed.
   if (chipDrag.moved < 3) return
+
+  // First frame that is really a drag: take the capture now, and only now.
+  if (!chipDrag.captured) {
+    try {
+      el.setPointerCapture?.(event.pointerId)
+      chipDrag.captured = true
+    } catch {
+      /* no active pointer with that id — carry on without capture */
+    }
+  }
 
   event.preventDefault()
   el.scrollLeft = chipDrag.startScroll - dx
@@ -135,7 +155,7 @@ function onChipPointerUp(event) {
   try {
     el?.releasePointerCapture?.(event.pointerId)
   } catch {
-    /* already released */
+    /* never captured, or already released */
   }
 }
 
