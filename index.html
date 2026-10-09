@@ -138,27 +138,27 @@
       immediately, in parallel with the CSS and the JS, which is where the
       largest element on the page should be fetched from.
 
-      Two links rather than one, each with the same `media` as the matching
-      `<source>` in ProfileImage. An earlier version used `imagesrcset` with
-      `imagesizes` on a single link, which is a different mechanism: it picks by
-      density, so at a desktop width it chose the 600px file while the
-      `<picture>` chose the 850px one. The preloaded file was discarded and the
-      second fetched anyway — two requests where one was intended, so the
-      preload bought nothing. Mirroring the media queries makes the two agree.
+      `imagesrcset` and `imagesizes` rather than two `media` links, because the
+      markup moved off `<picture>` and on to `srcset`/`sizes`. `media` selects by
+      viewport, `imagesrcset` by density and slot size, and the preload has to
+      speak the same language as the element it is preloading or the two pick
+      different files. That mismatch is exactly what was happening: the preloaded
+      file was discarded and a second one fetched instead — two requests where one
+      was intended, so the preload bought nothing.
+
+      The visible symptom on a refresh was the photograph's alt text drawn inside
+      its box. That is the browser rendering an `<img>` that has not decoded yet,
+      and it is not a broken asset — both files serve 200 and `complete` goes true
+      within a second. It showed because the fetch was starting late, behind the
+      stylesheet and the bundle. Preloading on the same terms as the element means
+      the bitmap is in flight at HTML parse rather than after mount, which closes
+      the window the alt text was appearing in.
     -->
     <link
       rel="preload"
       as="image"
-      href="/photo-600.webp"
-      media="(max-width: 640px)"
-      fetchpriority="high"
-      type="image/webp"
-    />
-    <link
-      rel="preload"
-      as="image"
-      href="/photo.webp"
-      media="(min-width: 641px)"
+      imagesrcset="/photo-600.webp 600w, /photo.webp 850w"
+      imagesizes="(min-width: 768px) 20rem, 17rem"
       fetchpriority="high"
       type="image/webp"
     />
