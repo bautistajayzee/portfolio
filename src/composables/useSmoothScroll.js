@@ -199,13 +199,27 @@ function onAnchorClick(event) {
 export function initSmoothScroll() {
   if (typeof window === 'undefined') return
 
-  // GSAP's ticker is the single requestAnimationFrame loop behind every tween
-  // and every scrubbed ScrollTrigger on this page — the progress rule, the
-  // portrait parallax, the hero reveal, the drifting section numbers.
-  //
-  // Without this, a long frame — a webfont landing, an image decoding — makes
-  // GSAP clamp its delta and animations visibly stutter.
-  gsap.ticker.lagSmoothing(0)
+  /*
+    Lag smoothing is left at GSAP's default, deliberately.
+
+    It used to be set to `lagSmoothing(0)` here, on the reasoning that a long
+    frame — a webfont landing, an image decoding — would otherwise be clamped and
+    visibly stutter. That is the API backwards. Lag smoothing is the mechanism
+    that absorbs exactly those frames: by default GSAP notices a frame that took
+    longer than 500ms and treats it as if it had taken 33ms, so one slow frame
+    costs a small step rather than a lurch.
+
+    Turning it off means every frame advances the ticker by its real elapsed
+    time. On a phone, where a garbage-collection pause or a decode routinely
+    costs 200-300ms, the next frame has to interpolate across that whole gap at
+    once — and every scrubbed trigger on this page does it in the same frame: the
+    progress rule, the portrait parallax, the hero statement, and all nine
+    drifting section numbers. That is the "it stops, then goes again" judder on
+    mobile, and it is worse there precisely because phones miss frames more
+    often.
+
+    Restoring the default costs nothing and removes the jumps.
+  */
 
   /*
     The mobile address bar is the reason this page used to throw you back to the
