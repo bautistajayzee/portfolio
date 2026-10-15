@@ -135,8 +135,8 @@
     instead of a faint field. Two hand-kept numbers are a better trade than a
     correct rule with an incorrect fallback.
   */
-  --c-grid: rgb(10 10 10 / 8%);
-  --c-grid-major: rgb(10 10 10 / 15%);
+  --c-grid: rgb(10 10 10 / 14%);
+  --c-grid-major: rgb(10 10 10 / 26%);
 }
 
 html.dark {
@@ -147,8 +147,8 @@ html.dark {
   --c-line: #26282d;
 
   /* See the note in `:root`. */
-  --c-grid: rgb(242 243 245 / 15%);
-  --c-grid-major: rgb(242 243 245 / 26%);
+  --c-grid: rgb(242 243 245 / 26%);
+  --c-grid-major: rgb(242 243 245 / 42%);
 
   --c-n-50: #131316;
   --c-n-100: #1a1b1f;
