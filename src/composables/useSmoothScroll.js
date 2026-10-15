@@ -207,6 +207,23 @@ export function initSmoothScroll() {
   // GSAP clamp its delta and animations visibly stutter.
   gsap.ticker.lagSmoothing(0)
 
+  /*
+    The mobile address bar is the reason this page used to throw you back to the
+    top.
+
+    On a phone, scrolling shows and hides the address bar, which changes the
+    viewport height — several times during one flick of the thumb. That is a
+    `resize`, and `resize` was wired to a full `ScrollTrigger.refresh()`, which
+    recalculates every trigger on the page and puts the scroll position back
+    afterwards. Doing that mid-gesture is what yanked the page back to the hero.
+
+    `ignoreMobileResize` is GSAP's own answer to exactly this: it drops the
+    resize events whose only cause is the browser's own chrome moving, which it
+    tells apart by the width not having changed. A real rotate or a resized
+    window still refreshes, which is the behaviour we want.
+  */
+  ScrollTrigger.config({ ignoreMobileResize: true })
+
   document.addEventListener('click', onAnchorClick)
 
   // The page grows after the first paint: webfonts land, images decode, the
@@ -218,8 +235,29 @@ export function initSmoothScroll() {
   // ever runs, so every ScrollTrigger after this line would keep a stale start
   // position. Absent the observer the `load`, `resize` and `fonts.ready` hooks
   // still cover the cases that matter; the observer only adds the coalescing.
+  //
+  // Kept but made choosy, because `ignoreMobileResize` covers the window
+  // `resize` event and not this one — an observer on `documentElement` still
+  // sees the document box change height as the address bar moves. Only a width
+  // change, or a height change big enough to be real content landing, earns a
+  // refresh.
   if (typeof ResizeObserver !== 'undefined') {
-    new ResizeObserver(scheduleRefresh).observe(document.documentElement)
+    let lastWidth = document.documentElement.clientWidth
+    let lastHeight = document.documentElement.scrollHeight
+
+    new ResizeObserver(() => {
+      const el = document.documentElement
+      const width = el.clientWidth
+      const height = el.scrollHeight
+
+      const widthChanged = width !== lastWidth
+      const contentGrew = Math.abs(height - lastHeight) > 150
+
+      lastWidth = width
+      lastHeight = height
+
+      if (widthChanged || contentGrew) scheduleRefresh()
+    }).observe(document.documentElement)
   }
   document.fonts?.ready.then(scheduleRefresh)
   window.addEventListener('load', scheduleRefresh)
