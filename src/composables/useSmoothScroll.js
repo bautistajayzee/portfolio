@@ -275,7 +275,22 @@ export function initSmoothScroll() {
   }
   document.fonts?.ready.then(scheduleRefresh)
   window.addEventListener('load', scheduleRefresh)
-  window.addEventListener('resize', scheduleRefresh, { passive: true })
+  /*
+    Width-gated, like the observer above. A height-only resize is the address
+    bar moving, not the layout changing — refreshing triggers mid-scroll on
+    that is the stop-go judder. A width change is a rotate or a real window
+    resize, which is the only case that needs a re-measure.
+  */
+  let lastWindowWidth = window.innerWidth
+  window.addEventListener(
+    'resize',
+    () => {
+      if (window.innerWidth === lastWindowWidth) return
+      lastWindowWidth = window.innerWidth
+      scheduleRefresh()
+    },
+    { passive: true },
+  )
 
   refreshScroll()
 }
